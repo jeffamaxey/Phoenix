@@ -120,20 +120,7 @@ class TestPanel(scrolled.ScrolledPanel):
 
         # Make and layout three rows of buttons in the panel
         for btn in btype:
-            if exstyle:
-                # With this style flag set the button can appear transparent on
-                # on top of a background that is not solid in color, such as the
-                # gradient panel in this demo.
-                #
-                # Note: This flag only has affect on wxMSW and should only be
-                #       set when the background is not a solid color. On wxMac
-                #       it is a no-op as this type of transparency is achieved
-                #       without any help needed. On wxGtk it doesn't hurt to
-                #       set but also unfortunately doesn't help at all.
-                bstyle = btn[2] | platebtn.PB_STYLE_NOBG
-            else:
-                bstyle = btn[2]
-
+            bstyle = btn[2] | platebtn.PB_STYLE_NOBG if exstyle else btn[2]
             if btype.index(btn) < 5:
                 tsizer = hsizer1
             elif btype.index(btn) < 10:
@@ -159,7 +146,7 @@ class TestPanel(scrolled.ScrolledPanel):
                 elif btn[0] is not None and btn[0] == bookmark:
                     for url in ['http://wxpython.org', 'http://slashdot.org',
                                 'http://editra.org', 'http://xkcd.com']:
-                        menu.Append(wx.ID_ANY, url, "Open %s in your browser" % url)
+                        menu.Append(wx.ID_ANY, url, f"Open {url} in your browser")
                 else:
                     menu.Append(wx.ID_ANY, "Menu Item 1")
                     menu.Append(wx.ID_ANY, "Menu Item 2")
@@ -238,7 +225,7 @@ class GradientPanel(wx.Panel):
         rect = self.GetClientRect()
         grad = gc.CreateLinearGradientBrush(0, 1, 0, rect.height - 1, col2, col1)
 
-        pen_col = tuple([min(190, x) for x in platebtn.AdjustColour(col1, -60)])
+        pen_col = tuple(min(190, x) for x in platebtn.AdjustColour(col1, -60))
         gc.SetPen(gc.CreatePen(wx.Pen(pen_col, 1)))
         gc.SetBrush(grad)
         gc.DrawRectangle(0, 1, rect.width - 0.5, rect.height - 0.5)
@@ -247,8 +234,7 @@ class GradientPanel(wx.Panel):
 #----------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
-    return win
+    return TestPanel(nb, log)
 
 class TestLog:
     def __init__(self):

@@ -119,7 +119,7 @@ _imageTag = '<td align=center valign=middle><a href="%s"><img src="%s" alt="%s">
 _platformTag = '<td align=center><b>%s</b></td>'
 
 _trunkURL = "http://docs.wxwidgets.org/trunk/"
-_docsURL = _trunkURL + "classwx%s.html"
+_docsURL = f"{_trunkURL}classwx%s.html"
 _platformNames = ["wxMSW", "wxGTK", "wxMac"]
 
 
@@ -146,14 +146,9 @@ def ReplaceCapitals(string):
     * `string`: the string to be analyzed.
     """
 
-    newString = ""
-    for char in string:
-        if char.isupper():
-            newString += "_%s"%char.lower()
-        else:
-            newString += char
-
-    return newString
+    return "".join(
+        f"_{char.lower()}" if char.isupper() else char for char in string
+    )
 
 
 def RemoveHTMLTags(data):
@@ -178,7 +173,7 @@ def FormatDocs(keyword, values, num):
     if num == 3:
         text = "<br>" + table%(keyword.lower(), keyword.lower()) + "\n<tr>\n"
     else:
-        text = "<br>" + table
+        text = f"<br>{table}"
 
     for indx in range(2):
         text += _headerTable%headers[indx]
@@ -201,17 +196,17 @@ def FormatDocs(keyword, values, num):
             if cutValue in _dirWX:
                 try:
                     val = eval(pythonValue)
-                    value = "%s"%hex(val)
+                    value = f"{hex(val)}"
                     colour = "#0000ff"
                 except AttributeError:
                     value = "Unavailable"
             else:
                 for packages in _importList:
                     if cutValue in dir(eval(packages)):
-                        val = eval("%s.%s"%(packages, cutValue))
-                        value = "%s"%hex(val)
+                        val = eval(f"{packages}.{cutValue}")
+                        value = f"{hex(val)}"
                         colour = "#0000ff"
-                        pythonValue = "%s.%s"%(packages, cutValue)
+                        pythonValue = f"{packages}.{cutValue}"
                         break
 
             text += _styleTag%pythonValue + "\n"
@@ -245,14 +240,14 @@ def FormatDescription(description):
 
 def FormatImages(appearance):
 
-    text = "<p><br>" + _appearanceTable
+    text = f"<p><br>{_appearanceTable}"
 
     for indx in range(2):
         text += "\n<tr>\n"
         for key in _platformNames:
             if indx == 0:
                 src = appearance[key]
-                alt = key + "Appearance"
+                alt = f"{key}Appearance"
                 text += _imageTag%(src, src, alt)
             else:
                 text += _platformTag%key
@@ -301,17 +296,17 @@ def FindWindowStyles(text, originalText, widgetName):
 
         if inStyle:
             start = line.index(':')
-            windowStyle = line[0:start]
+            windowStyle = line[:start]
             styleDescription = line[start+1:]
             winStyles[windowStyle] = styleDescription
         elif inEvent:
             start = line.index(':')
-            eventName = line[0:start]
+            eventName = line[:start]
             eventDescription = line[start+1:]
             winEvents[eventName] = eventDescription
         elif inExtra:
             start = line.index(':')
-            styleName = line[0:start]
+            styleName = line[:start]
             styleDescription = line[start+1:]
             winExtra[styleName] = styleDescription
 
@@ -341,8 +336,7 @@ def FindImages(text, widgetName):
     text = text[start:end]
     split = text.split()
 
-    for indx, items in enumerate(split):
-
+    for items in split:
         if "src=" in items:
             possibleImage = items.replace("src=", "").strip()
             possibleImage = possibleImage.replace('"', "")
@@ -350,7 +344,7 @@ def FindImages(text, widgetName):
                 stream = f.read()
         elif "alt=" in items:
             plat = items.replace("alt=", "").replace("'", "").strip()
-            path = os.path.join(imagesDir, plat, widgetName + ".png")
+            path = os.path.join(imagesDir, plat, f"{widgetName}.png")
             if not os.path.isfile(path):
                 image = wx.ImageFromStream(BytesIO(stream))
                 image.SaveFile(path, wx.BITMAP_TYPE_PNG)
@@ -418,11 +412,7 @@ class InternetThread(Thread):
         try:
             url = _docsURL % ReplaceCapitals(self.selectedClass)
             with urllib.request.urlopen(url) as fid:
-                if six.PY2:
-                    originalText = fid.read()
-                else:
-                    originalText = fid.read().decode("utf-8")
-
+                originalText = fid.read() if six.PY2 else fid.read().decode("utf-8")
             text = RemoveHTMLTags(originalText).split("\n")
             data = FindWindowStyles(text, originalText, self.selectedClass)
 
@@ -804,16 +794,18 @@ class DemoCodePanel(wx.Panel):
 
 
     def OnSave(self, event):
-        if self.demoModules.Exists(modModified):
-            if self.demoModules.GetActiveID() == modOriginal:
-                overwriteMsg = "You are about to overwrite an already existing modified copy\n" + \
+        if (
+            self.demoModules.Exists(modModified)
+            and self.demoModules.GetActiveID() == modOriginal
+        ):
+            overwriteMsg = "You are about to overwrite an already existing modified copy\n" + \
                                "Do you want to continue?"
-                dlg = wx.MessageDialog(self, overwriteMsg, "wxPython Demo",
-                                       wx.YES_NO | wx.NO_DEFAULT| wx.ICON_EXCLAMATION)
-                result = dlg.ShowModal()
-                if result == wx.ID_NO:
-                    return
-                dlg.Destroy()
+            dlg = wx.MessageDialog(self, overwriteMsg, "wxPython Demo",
+                                   wx.YES_NO | wx.NO_DEFAULT| wx.ICON_EXCLAMATION)
+            result = dlg.ShowModal()
+            if result == wx.ID_NO:
+                return
+            dlg.Destroy()
 
         self.demoModules.SetActive(modModified)
         modifiedFilename = GetModifiedFilename(self.demoModules.name)
@@ -826,10 +818,12 @@ class DemoCodePanel(wx.Panel):
                     wx.LogMessage("BUG: Created demo directory but it still doesn't exist")
                     raise AssertionError
             except:
-                wx.LogMessage("Error creating demo directory: %s" % GetModifiedDirectory())
+                wx.LogMessage(f"Error creating demo directory: {GetModifiedDirectory()}")
                 return
             else:
-                wx.LogMessage("Created directory for modified demos: %s" % GetModifiedDirectory())
+                wx.LogMessage(
+                    f"Created directory for modified demos: {GetModifiedDirectory()}"
+                )
 
         # Save
         source = self.editor.GetText()
@@ -861,7 +855,7 @@ def opj(path):
     st = os.path.join(*tuple(path.split('/')))
     # HACK: on Linux, a leading / gets lost...
     if path.startswith('/'):
-        st = '/' + st
+        st = f'/{st}'
     return st
 
 
@@ -886,7 +880,7 @@ def GetModifiedFilename(name):
     Returns the filename of the modified version of the specified demo
     """
     if not name.endswith(".py"):
-        name = name + ".py"
+        name = f"{name}.py"
     return os.path.join(GetModifiedDirectory(), name)
 
 
@@ -895,7 +889,7 @@ def GetOriginalFilename(name):
     Returns the filename of the original version of the specified demo
     """
     if not name.endswith(".py"):
-        name = name + ".py"
+        name = f"{name}.py"
 
     if os.path.isfile(name):
         return name
@@ -918,19 +912,14 @@ def GetOriginalFilename(name):
 
 def DoesModifiedExist(name):
     """Returns whether the specified demo has a modified copy"""
-    if os.path.exists(GetModifiedFilename(name)):
-        return True
-    else:
-        return False
+    return bool(os.path.exists(GetModifiedFilename(name)))
 
 
 def GetConfig():
     if not os.path.exists(GetDataDir()):
         os.makedirs(GetDataDir())
 
-    config = wx.FileConfig(
-        localFilename=os.path.join(GetDataDir(), "options"))
-    return config
+    return wx.FileConfig(localFilename=os.path.join(GetDataDir(), "options"))
 
 
 def MakeDocDirs():
@@ -947,9 +936,7 @@ def MakeDocDirs():
 
 def GetDocFile():
 
-    docFile = os.path.join(GetDataDir(), "docs", "TrunkDocs.pkl")
-
-    return docFile
+    return os.path.join(GetDataDir(), "docs", "TrunkDocs.pkl")
 
 
 def GetDocImagesDir():
@@ -966,10 +953,7 @@ def SearchDemo(name, keyword):
     if six.PY2:
         fullText = fullText.decode("iso-8859-1")
 
-    if fullText.find(keyword) >= 0:
-        return True
-
-    return False
+    return fullText.find(keyword) >= 0
 
 
 def HuntExternalDemos():
@@ -1073,13 +1057,15 @@ class DemoModules(object):
 
         #              (dict , source ,  filename , description   , error information )
         #              (  0  ,   1    ,     2     ,      3        ,          4        )
-        self.modules = [[dict(),  ""    ,    ""     , "<original>"  ,        None],
-                        [dict(),  ""    ,    ""     , "<modified>"  ,        None]]
+        self.modules = [
+            [{}, "", "", "<original>", None],
+            [{}, "", "", "<modified>", None],
+        ]
 
         getcwd = os.getcwd if six.PY3 else os.getcwdu
         for i in [modOriginal, modModified]:
             self.modules[i][0]['__file__'] = \
-                os.path.join(getcwd(), GetOriginalFilename(name))
+                    os.path.join(getcwd(), GetOriginalFilename(name))
 
         # load original module
         self.LoadFromFile(modOriginal, GetOriginalFilename(name))
@@ -1117,7 +1103,7 @@ class DemoModules(object):
 
 
     def SetActive(self, modID):
-        if modID != modOriginal and modID != modModified:
+        if modID not in [modOriginal, modModified]:
             raise LookupError
         else:
             self.modActive = modID
@@ -1125,10 +1111,7 @@ class DemoModules(object):
 
     def GetActive(self):
         dict = self.modules[self.modActive][0]
-        if dict is None:
-            return None
-        else:
-            return ModuleDictWrapper(dict)
+        return None if dict is None else ModuleDictWrapper(dict)
 
 
     def GetActiveID(self):
@@ -1215,10 +1198,16 @@ class DemoError(object):
         del exc_info
 
     def __str__(self):
-        ret = "Type %s \n \
+        return (
+            "Type %s \n \
         Traceback: %s \n \
-        Details  : %s" % ( str(self.exception_type), str(self.traceback), self.exception_details )
-        return ret
+        Details  : %s"
+            % (
+                str(self.exception_type),
+                str(self.traceback),
+                self.exception_details,
+            )
+        )
 
 #---------------------------------------------------------------------------
 
@@ -1283,7 +1272,7 @@ class DemoErrorPanel(wx.Panel):
             list.SetItem(x, 3, str(data[3]))              # Code
 
             # Check whether this entry is from the demo module
-            if data[0] == "<original>" or data[0] == "<modified>": # FIXME: make more generalised
+            if data[0] in ["<original>", "<modified>"]: # FIXME: make more generalised
                 self.list.SetItemData(x, int(data[1]))   # Store line number for easy access
                 # Give it a blue colour
                 item = self.list.GetItem(x)
@@ -1374,9 +1363,7 @@ class DemoTaskBarIcon(TaskBarIcon):
             img = img.Scale(16, 16)
         elif "wxGTK" in wx.PlatformInfo:
             img = img.Scale(22, 22)
-        # wxMac can be any size up to 128x128, so leave the source img alone....
-        icon = wx.Icon(img.ConvertToBitmap())
-        return icon
+        return wx.Icon(img.ConvertToBitmap())
 
 
     def OnTaskBarActivate(self, evt):
@@ -1401,7 +1388,7 @@ class DemoTaskBarIcon(TaskBarIcon):
             self.imgidx = 0
 
         icon = self.MakeIcon(eImg.Image)
-        self.SetIcon(icon, "This is a new icon: " + name)
+        self.SetIcon(icon, f"This is a new icon: {name}")
 
 
     def OnTaskBarRemove(self, evt):
@@ -1461,7 +1448,7 @@ class wxPythonDemo(wx.Frame):
         self.statusBar = self.CreateStatusBar(2)#, wx.ST_SIZEGRIP
         self.statusBar.SetStatusWidths([-2, -1])
 
-        statusText = "Welcome to wxPython %s" % wx.VERSION_STRING
+        statusText = f"Welcome to wxPython {wx.VERSION_STRING}"
         self.statusBar.SetStatusText(statusText, 0)
 
         self.downloadGauge = wx.Gauge(self.statusBar, wx.ID_ANY, 50)
@@ -1637,20 +1624,16 @@ class wxPythonDemo(wx.Frame):
         self.expansionState = [0, 1]
 
         config = GetConfig()
-        val = config.Read('ExpansionState')
-        if val:
+        if val := config.Read('ExpansionState'):
             self.expansionState = eval(val)
 
-        val = config.Read('AUIPerspectives')
-        if val:
+        if val := config.Read('AUIPerspectives'):
             self.auiConfigurations = eval(val)
 
-        val = config.Read('AllowDownloads')
-        if val:
+        if val := config.Read('AllowDownloads'):
             self.allowDocs = eval(val)
 
-        val = config.Read('AllowAUIFloating')
-        if val:
+        if val := config.Read('AllowAUIFloating'):
             self.allowAuiFloating = eval(val)
 
         MakeDocDirs()
@@ -1789,17 +1772,6 @@ class wxPythonDemo(wx.Frame):
 
         self.EnableAUIMenu()
 
-        if False:
-            # This is another way to set Accelerators, in addition to
-            # using the '\t<key>' syntax in the menu items.
-            aTable = wx.AcceleratorTable([(wx.ACCEL_ALT,  ord('X'), exitItem.GetId()),
-                                          (wx.ACCEL_CTRL, ord('H'), helpItem.GetId()),
-                                          (wx.ACCEL_CTRL, ord('F'), findItem.GetId()),
-                                          (wx.ACCEL_NORMAL, wx.WXK_F3, findNextItem.GetId()),
-                                          (wx.ACCEL_NORMAL, wx.WXK_F9, shellItem.GetId()),
-                                          ])
-            self.SetAcceleratorTable(aTable)
-
 
     #---------------------------------------------
     def RecreateTree(self, evt=None):
@@ -1807,19 +1779,16 @@ class wxPythonDemo(wx.Frame):
         searchMenu = self.filter.GetMenu().GetMenuItems()
         fullSearch = searchMenu[1].IsChecked()
 
-        if evt:
-            if fullSearch:
-                # Do not`scan all the demo files for every char
-                # the user input, use wx.EVT_TEXT_ENTER instead
-                return
+        if evt and fullSearch:
+            # Do not`scan all the demo files for every char
+            # the user input, use wx.EVT_TEXT_ENTER instead
+            return
 
         expansionState = self.tree.GetExpansionState()
 
         current = None
-        item = self.tree.GetSelection()
-        if item:
-            prnt = self.tree.GetItemParent(item)
-            if prnt:
+        if item := self.tree.GetSelection():
+            if prnt := self.tree.GetItemParent(item):
                 current = (self.tree.GetItemText(item),
                            self.tree.GetItemText(prnt))
 
@@ -1846,15 +1815,13 @@ class wxPythonDemo(wx.Frame):
         firstChild = None
         selectItem = None
         filter = self.filter.GetValue()
-        count = 0
-
-        for category, items in _treeList:
-            count += 1
+        for count, (category, items) in enumerate(_treeList, start=1):
             if filter:
-                if fullSearch:
-                    items = self.searchItems[category]
-                else:
-                    items = [item for item in items if filter.lower() in item.lower()]
+                items = (
+                    self.searchItems[category]
+                    if fullSearch
+                    else [item for item in items if filter.lower() in item.lower()]
+                )
             if items:
                 child = self.tree.AppendItem(self.root, category, image=count)
                 self.tree.SetItemFont(child, catFont)
@@ -1913,9 +1880,7 @@ class wxPythonDemo(wx.Frame):
 
         # Catch the search type (name or content)
         searchMenu = self.filter.GetMenu().GetMenuItems()
-        fullSearch = searchMenu[1].IsChecked()
-
-        if fullSearch:
+        if fullSearch := searchMenu[1].IsChecked():
             self.OnSearch()
         else:
             self.RecreateTree()
@@ -1942,10 +1907,7 @@ class wxPythonDemo(wx.Frame):
 
     def SetTreeModified(self, modified):
         item = self.tree.GetSelection()
-        if modified:
-            image = len(_demoPngs)
-        else:
-            image = self.tree.GetItemData(item)
+        image = len(_demoPngs) if modified else self.tree.GetItemData(item)
         self.tree.SetItemImage(item, image)
 
 
@@ -1960,13 +1922,13 @@ class wxPythonDemo(wx.Frame):
     #---------------------------------------------
     def OnItemExpanded(self, event):
         item = event.GetItem()
-        wx.LogMessage("OnItemExpanded: %s" % self.tree.GetItemText(item))
+        wx.LogMessage(f"OnItemExpanded: {self.tree.GetItemText(item)}")
         event.Skip()
 
     #---------------------------------------------
     def OnItemCollapsed(self, event):
         item = event.GetItem()
-        wx.LogMessage("OnItemCollapsed: %s" % self.tree.GetItemText(item))
+        wx.LogMessage(f"OnItemCollapsed: {self.tree.GetItemText(item)}")
         event.Skip()
 
     #---------------------------------------------
@@ -1975,7 +1937,7 @@ class wxPythonDemo(wx.Frame):
         pt = event.GetPosition()
         item, flags = self.tree.HitTest(pt)
         if item == self.tree.GetSelection():
-            self.SetOverview(self.tree.GetItemText(item)+" Overview", self.curOverview)
+            self.SetOverview(f"{self.tree.GetItemText(item)} Overview", self.curOverview)
         event.Skip()
 
     #---------------------------------------------
@@ -2008,28 +1970,27 @@ class wxPythonDemo(wx.Frame):
                 self.SetOverview(self.overviewText, mainOverview)
                 self.LoadDemoSource()
                 self.UpdateNotebook(0)
+            elif os.path.exists(GetOriginalFilename(demoName)):
+                wx.LogMessage(f"Loading demo {demoName}.py...")
+                self.demoModules = DemoModules(demoName)
+                self.LoadDemoSource()
+
             else:
-                if os.path.exists(GetOriginalFilename(demoName)):
-                    wx.LogMessage("Loading demo %s.py..." % demoName)
-                    self.demoModules = DemoModules(demoName)
+
+                package, overview = LookForExternals(self.externalDemos, demoName)
+
+                if package:
+                    wx.LogMessage(f"Loading demo {package}/{demoName}.py...")
+                    self.demoModules = DemoModules(f"{package}/{demoName}")
                     self.LoadDemoSource()
-
+                elif overview:
+                    self.SetOverview(demoName, overview)
+                    self.codePage = None
+                    self.UpdateNotebook(0)
                 else:
-
-                    package, overview = LookForExternals(self.externalDemos, demoName)
-
-                    if package:
-                        wx.LogMessage("Loading demo %s.py..." % ("%s/%s"%(package, demoName)))
-                        self.demoModules = DemoModules("%s/%s"%(package, demoName))
-                        self.LoadDemoSource()
-                    elif overview:
-                        self.SetOverview(demoName, overview)
-                        self.codePage = None
-                        self.UpdateNotebook(0)
-                    else:
-                        self.SetOverview("wxPython", mainOverview)
-                        self.codePage = None
-                        self.UpdateNotebook(0)
+                    self.SetOverview("wxPython", mainOverview)
+                    self.codePage = None
+                    self.UpdateNotebook(0)
 
         finally:
             wx.EndBusyCursor()
@@ -2064,8 +2025,7 @@ class wxPythonDemo(wx.Frame):
                 self.demoPage = DemoErrorPanel(self.nb, self.codePage,
                                                DemoError(sys.exc_info()), self)
 
-            bg = self.nb.GetThemeBackgroundColour()
-            if bg:
+            if bg := self.nb.GetThemeBackgroundColour():
                 self.demoPage.SetBackgroundColour(bg)
 
             assert self.demoPage is not None, "runTest must return a window!"
@@ -2075,7 +2035,7 @@ class wxPythonDemo(wx.Frame):
             self.demoPage = DemoErrorPanel(self.nb, self.codePage,
                                            self.demoModules.GetErrorInfo(), self)
 
-        self.SetOverview(self.demoModules.name + " Overview", overviewText)
+        self.SetOverview(f"{self.demoModules.name} Overview", overviewText)
 
         if self.firstTime:
             # change to the demo page the first time a module is run
@@ -2113,22 +2073,27 @@ class wxPythonDemo(wx.Frame):
                 if not pageExists:
                     # Add a new page
                     nb.AddPage(page, pageText, imageId=nb.GetPageCount())
-                    if debug: wx.LogMessage("DBG: ADDED %s" % pageText)
+                    if debug:
+                        wx.LogMessage(f"DBG: ADDED {pageText}")
                 else:
                     if nb.GetPage(pagePos) != page:
                         # Reload an existing page
                         nb.DeletePage(pagePos)
                         nb.InsertPage(pagePos, page, pageText, imageId=pagePos)
-                        if debug: wx.LogMessage("DBG: RELOADED %s" % pageText)
+                        if debug:
+                            wx.LogMessage(f"DBG: RELOADED {pageText}")
                     else:
                         # Excellent! No redraw/flicker
-                        if debug: wx.LogMessage("DBG: SAVED from reloading %s" % pageText)
+                        if debug:
+                            wx.LogMessage(f"DBG: SAVED from reloading {pageText}")
             elif pageExists:
                 # Delete a page
                 nb.DeletePage(pagePos)
-                if debug: wx.LogMessage("DBG: DELETED %s" % pageText)
+                if debug:
+                    wx.LogMessage(f"DBG: DELETED {pageText}")
             else:
-                if debug: wx.LogMessage("DBG: STILL GONE - %s" % pageText)
+                if debug:
+                    wx.LogMessage(f"DBG: STILL GONE - {pageText}")
 
         if select == -1:
             select = nb.GetSelection()
@@ -2145,10 +2110,8 @@ class wxPythonDemo(wx.Frame):
     def SetOverview(self, name, text):
         self.curOverview = text
         lead = text[:6]
-        if lead != '<html>' and lead != '<HTML>':
+        if lead not in ['<html>', '<HTML>']:
             text = '<br>'.join(text.split('\n'))
-        # if wx.USE_UNICODE:
-            # text = text.decode('iso8859_1')
         self.ovr.SetPage(text)
         self.nb.SetPageText(0, os.path.split(name)[1])
 
@@ -2173,7 +2136,7 @@ class wxPythonDemo(wx.Frame):
         text += "<br><p><b>Checking for documentation on the wxWidgets website, please stand by...</b><br>"
 
         lead = text[:6]
-        if lead != '<html>' and lead != '<HTML>':
+        if lead not in ['<html>', '<HTML>']:
             text = '<br>'.join(text.split('\n'))
 
         self.ovr.SetPage(text)
@@ -2193,12 +2156,11 @@ class wxPythonDemo(wx.Frame):
         if not self.downloading:
             return
 
-        if error:
-            if self.sendDownloadError:
-                self.log.AppendText("Warning: problems in downloading documentation from the wxWidgets website.\n")
-                self.log.AppendText("Error message from the documentation downloader was:\n")
-                self.log.AppendText("\n".join(error))
-                self.sendDownloadError = False
+        if error and self.sendDownloadError:
+            self.log.AppendText("Warning: problems in downloading documentation from the wxWidgets website.\n")
+            self.log.AppendText("Error message from the documentation downloader was:\n")
+            self.log.AppendText("\n".join(error))
+            self.sendDownloadError = False
 
         self.nb.SetPageImage(0, 0)
 
@@ -2212,7 +2174,7 @@ class wxPythonDemo(wx.Frame):
         text = self.curOverview
 
         lead = text[:6]
-        if lead != '<html>' and lead != '<HTML>':
+        if lead not in ['<html>', '<HTML>']:
             text = '<br>'.join(text.split('\n'))
 
         self.ovr.SetPage(text)
@@ -2237,7 +2199,7 @@ class wxPythonDemo(wx.Frame):
                 continue
 
             headers = (names == "Events" and [2] or [3])[0]
-            text += "<p>" + FormatDocs(names, values, headers)
+            text += f"<p>{FormatDocs(names, values, headers)}"
 
         item = self.tree.GetSelection()
         itemText = self.tree.GetItemText(item)
@@ -2353,13 +2315,9 @@ class wxPythonDemo(wx.Frame):
 
     def OnDeletePerspective(self, event):
         menuItems = self.perspectives_menu.GetMenuItems()
-        lst = []
         loadDefault = False
 
-        for indx, item in enumerate(menuItems):
-            if indx > 0:
-                lst.append(item.GetLabel())
-
+        lst = [item.GetLabel() for indx, item in enumerate(menuItems) if indx > 0]
         dlg = wx.MultiChoiceDialog(self,
                                    "Please select the perspectives\nyou would like to delete:",
                                    "Delete AUI Perspectives", lst)
@@ -2546,8 +2504,7 @@ class wxPythonDemo(wx.Frame):
 
     def ShowTip(self):
         config = GetConfig()
-        showTipText = config.Read("tips")
-        if showTipText:
+        if showTipText := config.Read("tips"):
             showTip, index = eval(showTipText)
         else:
             showTip, index = (1, 0)
@@ -2572,7 +2529,7 @@ class wxPythonDemo(wx.Frame):
 
     #---------------------------------------------
     def OnIconfiy(self, evt):
-        wx.LogMessage("OnIconfiy: %s" % evt.IsIconized())
+        wx.LogMessage(f"OnIconfiy: {evt.IsIconized()}")
         evt.Skip()
 
     #---------------------------------------------
@@ -2582,12 +2539,12 @@ class wxPythonDemo(wx.Frame):
 
     #---------------------------------------------
     def OnActivate(self, evt):
-        wx.LogMessage("OnActivate: %s" % evt.GetActive())
+        wx.LogMessage(f"OnActivate: {evt.GetActive()}")
         evt.Skip()
 
     #---------------------------------------------
     def OnAppActivate(self, evt):
-        wx.LogMessage("OnAppActivate: %s" % evt.GetActive())
+        wx.LogMessage(f"OnAppActivate: {evt.GetActive()}")
         evt.Skip()
 
 #---------------------------------------------------------------------------
@@ -2649,11 +2606,11 @@ class wxPythonDemoTree(ExpansionState, TreeBaseClass):
 
 
     def AppendItem(self, parent, text, image=-1, wnd=None):
-        if USE_CUSTOMTREECTRL:
-            item = TreeBaseClass.AppendItem(self, parent, text, image=image, wnd=wnd)
-        else:
-            item = TreeBaseClass.AppendItem(self, parent, text, image=image)
-        return item
+        return (
+            TreeBaseClass.AppendItem(self, parent, text, image=image, wnd=wnd)
+            if USE_CUSTOMTREECTRL
+            else TreeBaseClass.AppendItem(self, parent, text, image=image)
+        )
 
     def BuildTreeImageList(self):
         imgList = wx.ImageList(16, 16)

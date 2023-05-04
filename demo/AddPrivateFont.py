@@ -40,7 +40,7 @@ class TestPanel(wx.Panel):
         filename = os.path.join(gDataDir, 'SourceCodePro-Regular.ttf')
         wx.Font.AddPrivateFont(filename)
 
-        text1 = "The font used in the text below was dynamically loaded from\n{}.".format(filename)
+        text1 = f"The font used in the text below was dynamically loaded from\n{filename}."
         st1 = wx.StaticText(self, -1, text1, (15, 15))
 
         st2 = wx.StaticText(self, -1, SAMPLETEXT, (15, 42))
@@ -65,8 +65,7 @@ class TestPanel(wx.Panel):
 #----------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
-    return win
+    return TestPanel(nb, log)
 
 #----------------------------------------------------------------------
 

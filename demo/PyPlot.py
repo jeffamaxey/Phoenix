@@ -40,16 +40,18 @@ class TestPanel(wx.Panel):
 
 def runTest(frame, nb, log):
     if not hadImportError:
-        win = TestPanel(nb, log)
-    else:
-        from wx.lib.msgpanel import MessagePanel
-        win = MessagePanel(nb, """\
+        return TestPanel(nb, log)
+    from wx.lib.msgpanel import MessagePanel
+    return MessagePanel(
+        nb,
+        """\
 This demo requires the numpy module, which could not be imported.
 It probably is not installed (it's not part of the standard Python
 distribution). See https://pypi.python.org/pypi/numpy for information
-about the numpy package.""", 'Sorry', wx.ICON_WARNING)
-
-    return win
+about the numpy package.""",
+        'Sorry',
+        wx.ICON_WARNING,
+    )
 
 
 #----------------------------------------------------------------------

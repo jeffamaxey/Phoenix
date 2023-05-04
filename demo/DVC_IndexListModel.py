@@ -78,8 +78,7 @@ class TestModel(dv.DataViewIndexListModel):
             a = int(a)
             b = int(b)
         if a < b: return -1
-        if a > b: return 1
-        return 0
+        return 1 if a > b else 0
 
     def DeleteRows(self, rows):
         # make a copy since we'll be sorting(mutating) the list
@@ -116,11 +115,7 @@ class TestPanel(wx.Panel):
                                    )
 
         # Create an instance of our simple model...
-        if model is None:
-            self.model = TestModel(data, log)
-        else:
-            self.model = model
-
+        self.model = TestModel(data, log) if model is None else model
         # ...and associate it with the dataview control.  Models can
         # be shared between multiple DataViewCtrls, so this does not
         # assign ownership like many things in wx do.  There is some
@@ -229,8 +224,7 @@ def runTest(frame, nb, log):
     musicdata = sorted(ListCtrl.musicdata.items())
     musicdata = [[str(k)] + list(v) for k,v in musicdata]
 
-    win = TestPanel(nb, log, data=musicdata)
-    return win
+    return TestPanel(nb, log, data=musicdata)
 
 #----------------------------------------------------------------------
 

@@ -81,8 +81,8 @@ isDarwin = sys.platform == "darwin"
 devMode = False
 
 baseName = version.PROJECT_NAME
-eggInfoName = baseName + '.egg-info'
-defaultMask='%s-%s*' % (baseName, version.VER_MAJOR)
+eggInfoName = f'{baseName}.egg-info'
+defaultMask = f'{baseName}-{version.VER_MAJOR}*'
 
 pyICON = 'packaging/docset/Vippi-blocks-icon-32.png'
 wxICON = 'packaging/docset/mondrian.png'
@@ -105,7 +105,7 @@ toolsURL = 'https://wxpython.org/Phoenix/tools'
 
 # MS Edge code and DLLs needed for the wxWEBVIEW_BACKEND_EDGE backend
 MS_edge_version = '1.0.1185.39'
-MS_edge_url = 'https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/{}'.format(MS_edge_version)
+MS_edge_url = f'https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/{MS_edge_version}'
 
 #---------------------------------------------------------------------------
 
@@ -180,7 +180,7 @@ def main(args):
     options, commands = parseArgs(args)
 
     cfg = Config(noWxConfig=True)
-    msg('cfg.VERSION: %s' % cfg.VERSION)
+    msg(f'cfg.VERSION: {cfg.VERSION}')
     msg('')
 
     # For collecting test names or files, to be run after all have been pulled
@@ -194,14 +194,14 @@ def main(args):
         if not cmd:
             continue # ignore empty command-line args (possible with the buildbot)
         elif cmd.startswith('test_'):
-            test_names.append('unittests/%s.py' % cmd)
+            test_names.append(f'unittests/{cmd}.py')
         elif cmd.startswith('unittests/test_'):
             test_names.append(cmd)
-        elif 'cmd_'+cmd in globals():
-            function = globals()['cmd_'+cmd]
+        elif f'cmd_{cmd}' in globals():
+            function = globals()[f'cmd_{cmd}']
             function(options, args)
         else:
-            print('*** Unknown command: ' + cmd)
+            print(f'*** Unknown command: {cmd}')
             usage()
             sys.exit(1)
 
@@ -235,7 +235,7 @@ def setPythonVersion(args):
             break
         if re.match(r'^[0-9][0-9][0-9]?$', arg):
             havePyVer = True
-            PYVER = '%s.%s' % (arg[0], arg[1:])
+            PYVER = f'{arg[0]}.{arg[1:]}'
             PYSHORTVER = arg
             del args[idx]
             break
@@ -272,9 +272,7 @@ def setPythonVersion(args):
             CPU = os.environ.get('CPU')
             if use64flag or CPU in ['AMD64', 'X64', 'amd64', 'x64']:
                 TOOLS = posixjoin(TOOLS, 'amd64')
-            PYTHON = posixjoin(TOOLS,
-                               'python%s' % PYSHORTVER,
-                               'python.exe')
+            PYTHON = posixjoin(TOOLS, f'python{PYSHORTVER}', 'python.exe')
 
         elif isWindows:
             # Otherwise check if the invoking Python is the right version
@@ -285,20 +283,20 @@ def setPythonVersion(args):
             PYVER = sys.version[:3]
             PYSHORTVER = PYVER[0] + PYVER[2]
 
-        elif not isWindows:
+        else:
             # find a pythonX.Y on the PATH
-            PYTHON = runcmd("which python%s" % PYVER, True, False)
+            PYTHON = runcmd(f"which python{PYVER}", True, False)
 
 
     if not PYTHON:
         # If no version or path were specified then default to the python
         # that invoked this script
         PYTHON = sys.executable
-        PYVER = '{}.{}'.format(sys.version_info.major, sys.version_info.minor)
-        PYSHORTVER = '{}{}'.format(sys.version_info.major, sys.version_info.minor)
+        PYVER = f'{sys.version_info.major}.{sys.version_info.minor}'
+        PYSHORTVER = f'{sys.version_info.major}{sys.version_info.minor}'
 
     PYTHON = os.path.abspath(PYTHON)
-    msg('Will build using: "%s"' % PYTHON)
+    msg(f'Will build using: "{PYTHON}"')
 
     msg(runcmd([PYTHON, '-c', 'import sys; print(sys.version)'], True, False))
     PYTHON_ARCH = runcmd(
@@ -333,16 +331,11 @@ def setDevModeOptions(args):
         proc = 'unk'
 
     myDevModeOptions = [
-            #'--build_dir=../bld',
-            #'--prefix=/opt/wx/2.9',
-            '--jobs={}'.format(max(2, int(numCPUs()/2))),
-
-            # These will be ignored on the other platforms so it is okay to
-            # include them unconditionally
-            '--osx_cocoa',
-            '--mac_arch={}'.format(proc),
-            '--no_allmo',
-            ]
+        f'--jobs={max(2, int(numCPUs() / 2))}',
+        '--osx_cocoa',
+        f'--mac_arch={proc}',
+        '--no_allmo',
+    ]
     if not isWindows:
         myDevModeOptions.append('--debug')
     if isWindows:
@@ -388,14 +381,12 @@ def getMSWSettings(options):
     msw = MSWsettings()
     msw.CPU = os.environ.get('CPU')
     if msw.CPU in ['AMD64', 'X64'] or PYTHON_ARCH == '64bit':
-        msw.dllDir = posixjoin(wxDir(), "lib", "vc%s_x64_dll" % getVisCVersion())
+        msw.dllDir = posixjoin(wxDir(), "lib", f"vc{getVisCVersion()}_x64_dll")
     else:
-        msw.dllDir = posixjoin(wxDir(), "lib", "vc%s_dll" % getVisCVersion())
+        msw.dllDir = posixjoin(wxDir(), "lib", f"vc{getVisCVersion()}_dll")
     msw.buildDir = posixjoin(wxDir(), "build", "msw")
 
-    msw.dll_type = "u"
-    if options.debug:
-        msw.dll_type = "ud"
+    msw.dll_type = "ud" if options.debug else "u"
     return msw
 
 
@@ -465,10 +456,10 @@ def makeOptionParser():
         if type(default) == bool:
             action = 'store_true'
         if isinstance(opt, str):
-            opts = ('--'+opt, )
+            opts = (f'--{opt}', )
             dest = opt
         else:
-            opts = ('-'+opt[0], '--'+opt[1])
+            opts = f'-{opt[0]}', f'--{opt[1]}'
             dest = opt[1]
         parser.add_option(*opts, default=default, action=action,
                           dest=dest, help=txt)
@@ -529,110 +520,109 @@ def deleteIfExists(deldir, verbose=True):
     if os.path.exists(deldir) and os.path.isdir(deldir):
         try:
             if verbose:
-                msg("Removing folder: %s" % deldir)
+                msg(f"Removing folder: {deldir}")
             shutil.rmtree(deldir)
         except Exception:
             if verbose:
                 import traceback
-                msg("Error: %s" % traceback.format_exc(1))
+                msg(f"Error: {traceback.format_exc(1)}")
 
 def delFiles(fileList, verbose=True):
     for afile in fileList:
         if verbose:
-            print("Removing file: %s" % afile)
+            print(f"Removing file: {afile}")
         os.remove(afile)
 
 
 def getTool(cmdName, version, MD5, envVar, platformBinary, linuxBits=False):
-    # Check in the bin dir for the specified version of the tool command. If
-    # it's not there then attempt to download it. Validity of the binary is
-    # checked with an MD5 hash.
     if os.environ.get(envVar):
         # Setting a value in the environment overrides other options
         return os.environ.get(envVar)
-    else:
         # setup
-        if platformBinary:
-            platform = getToolsPlatformName(linuxBits)
-            ext = ''
-            if platform == 'win32':
-                ext = '.exe'
-            cmd = opj(phoenixDir(), 'bin', '%s-%s-%s%s' % (cmdName, version, platform, ext))
-            md5 = MD5[platform]
-        else:
-            cmd = opj(phoenixDir(), 'bin', '%s-%s' % (cmdName, version))
-            md5 = MD5
+    if platformBinary:
+        platform = getToolsPlatformName(linuxBits)
+        ext = ''
+        if platform == 'win32':
+            ext = '.exe'
+        cmd = opj(phoenixDir(), 'bin', f'{cmdName}-{version}-{platform}{ext}')
+        md5 = MD5[platform]
+    else:
+        cmd = opj(phoenixDir(), 'bin', f'{cmdName}-{version}')
+        md5 = MD5
 
 
-        def _error_msg(txt):
-            msg('ERROR: ' + txt)
-            msg('       Set %s in the environment to use a local build of %s instead' % (envVar, cmdName))
+    def _error_msg(txt):
+        msg(f'ERROR: {txt}')
+        msg(
+            f'       Set {envVar} in the environment to use a local build of {cmdName} instead'
+        )
 
 
-        msg('Checking for %s...' % cmd)
-        if os.path.exists(cmd):
+
+    msg(f'Checking for {cmd}...')
+    if os.path.exists(cmd):
             # if the file exists run some verification checks on it
 
             # first make sure it is a normal file
-            if not os.path.isfile(cmd):
-                _error_msg('%s exists but is not a regular file.' % cmd)
-                sys.exit(1)
-
-            # now check the MD5 if not in dev mode and it's set to None
-            if not (devMode and md5 is None):
-                m = hashlib.md5()
-                with open(cmd, 'rb') as fid:
-                    m.update(fid.read())
-                if m.hexdigest() != md5:
-                    _error_msg('MD5 mismatch, got "%s"\n       '
-                               'expected          "%s"' % (m.hexdigest(), md5))
-                    sys.exit(1)
-
-            # If the cmd is a script run by some interpreter, or similar,
-            # then we don't need to check anything else
-            if not platformBinary:
-                return cmd
-
-            # Ensure that commands that are platform binaries are executable
-            if not os.access(cmd, os.R_OK | os.X_OK):
-                _error_msg('Cannot execute %s due to permissions error' % cmd)
-                sys.exit(1)
-
-            try:
-                p = subprocess.Popen([cmd, '--help'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ)
-                p.communicate()
-            except OSError as e:
-                _error_msg('Could not execute %s, got "%s"' % (cmd, e))
-                sys.exit(1)
-
-            # if we get this far then all is well, the cmd is good to go
-            return cmd
-
-
-        msg('Not found.  Attempting to download...')
-        url = '%s/%s.bz2' % (toolsURL, os.path.basename(cmd))
-        try:
-            import requests
-            resp = requests.get(url)
-            resp.raise_for_status()
-            msg('Connection successful...')
-            data = resp.content
-            msg('Data downloaded...')
-        except Exception:
-            _error_msg('Unable to download ' + url)
-            import traceback
-            traceback.print_exc()
+        if not os.path.isfile(cmd):
+            _error_msg(f'{cmd} exists but is not a regular file.')
             sys.exit(1)
 
-        import bz2
-        data = bz2.decompress(data)
-        with open(cmd, 'wb') as f:
-            f.write(data)
-        os.chmod(cmd, 0o755)
+            # now check the MD5 if not in dev mode and it's set to None
+        if not devMode or md5 is not None:
+            m = hashlib.md5()
+            with open(cmd, 'rb') as fid:
+                m.update(fid.read())
+            if m.hexdigest() != md5:
+                _error_msg('MD5 mismatch, got "%s"\n       '
+                           'expected          "%s"' % (m.hexdigest(), md5))
+                sys.exit(1)
 
-        # Recursive call so the MD5 value will be double-checked on what was
-        # just downloaded
-        return getTool(cmdName, version, MD5, envVar, platformBinary, linuxBits)
+        # If the cmd is a script run by some interpreter, or similar,
+        # then we don't need to check anything else
+        if not platformBinary:
+            return cmd
+
+            # Ensure that commands that are platform binaries are executable
+        if not os.access(cmd, os.R_OK | os.X_OK):
+            _error_msg(f'Cannot execute {cmd} due to permissions error')
+            sys.exit(1)
+
+        try:
+            p = subprocess.Popen([cmd, '--help'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=os.environ)
+            p.communicate()
+        except OSError as e:
+            _error_msg(f'Could not execute {cmd}, got "{e}"')
+            sys.exit(1)
+
+        # if we get this far then all is well, the cmd is good to go
+        return cmd
+
+
+    msg('Not found.  Attempting to download...')
+    url = f'{toolsURL}/{os.path.basename(cmd)}.bz2'
+    try:
+        import requests
+        resp = requests.get(url)
+        resp.raise_for_status()
+        msg('Connection successful...')
+        data = resp.content
+        msg('Data downloaded...')
+    except Exception:
+        _error_msg(f'Unable to download {url}')
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+
+    import bz2
+    data = bz2.decompress(data)
+    with open(cmd, 'wb') as f:
+        f.write(data)
+    os.chmod(cmd, 0o755)
+
+    # Recursive call so the MD5 value will be double-checked on what was
+    # just downloaded
+    return getTool(cmdName, version, MD5, envVar, platformBinary, linuxBits)
 
 
 
@@ -655,14 +645,14 @@ def getDoxCmd():
 
 
 def getMSWebView2():
-    fname = '{}.zip'.format(MS_edge_version)
+    fname = f'{MS_edge_version}.zip'
     dest = opj(wxDir(), '3rdparty', 'webview2')
     if not os.path.exists(dest) or not os.path.exists(opj(dest, fname)):
         if os.path.exists(dest):
             shutil.rmtree(dest)
         os.makedirs(dest)
 
-        msg('Downloading microsoft.web.webview2 {}...'.format(MS_edge_version))
+        msg(f'Downloading microsoft.web.webview2 {MS_edge_version}...')
         try:
             import requests
             resp = requests.get(MS_edge_url)
@@ -689,15 +679,13 @@ class CommandTimer(object):
     def __init__(self, name):
         self.name = name
         self.startTime = datetime.datetime.now()
-        msg('Running command: %s' % self.name)
+        msg(f'Running command: {self.name}')
 
     def __del__(self):
         delta = datetime.datetime.now() - self.startTime
-        time = ""
-        if delta.seconds / 60 > 0:
-            time = "%dm" % (delta.seconds / 60)
+        time = "%dm" % (delta.seconds / 60) if delta.seconds > 0 else ""
         time += "%d.%ds" % (delta.seconds % 60, delta.microseconds / 1000)
-        msg('Finished command: %s (%s)' % (self.name, time))
+        msg(f'Finished command: {self.name} ({time})')
 
 
 def uploadPackage(fileName, options, mask=defaultMask, keep=75):
@@ -709,7 +697,7 @@ def uploadPackage(fileName, options, mask=defaultMask, keep=75):
     """
     fileName = os.path.relpath(fileName)
     fileName = fileName.replace('\\', '/')
-    msg("Uploading %s..." % fileName)
+    msg(f"Uploading {fileName}...")
 
     # NOTE: It is expected that there will be a host entry defined in
     # ~/.ssh/config named wxpython-rbot, with the proper host, user, identity
@@ -724,26 +712,23 @@ def uploadPackage(fileName, options, mask=defaultMask, keep=75):
         uploadDir = 'snapshot-builds'
 
     # copy the new file to the server
-    cmd = 'scp {} {}:{}'.format(fileName, host, uploadDir)
+    cmd = f'scp {fileName} {host}:{uploadDir}'
     runcmd(cmd)
 
     # Make sure it is readable by all, and writable by rbot
-    cmd = 'ssh {} "cd {}; chmod 644 {}"'.format(host, uploadDir, os.path.basename(fileName))
+    cmd = f'ssh {host} "cd {uploadDir}; chmod 644 {os.path.basename(fileName)}"'
     runcmd(cmd)
 
     if not options.release:
         # get the list of all snapshot files on the server
-        cmd = 'ssh {} "cd {}; ls {}"'.format(host, uploadDir, mask)
+        cmd = f'ssh {host} "cd {uploadDir}; ls {mask}"'
         allFiles = runcmd(cmd, getOutput=True)
         allFiles = allFiles.strip().split('\n')
         allFiles.sort()
 
-        # Leave the last keep number of builds, including this new one, on the server.
-        # Delete the rest.
-        rmFiles = allFiles[:-keep]
-        if rmFiles:
-            msg("Deleting %s" % ", ".join(rmFiles))
-            cmd = 'ssh {} "cd {}; rm {}"'.format(host, uploadDir, " ".join(rmFiles))
+        if rmFiles := allFiles[:-keep]:
+            msg(f'Deleting {", ".join(rmFiles)}')
+            cmd = f'ssh {host} "cd {uploadDir}; rm {" ".join(rmFiles)}"'
             runcmd(cmd)
 
     msg("Upload complete!")
@@ -753,7 +738,7 @@ def uploadTree(srcPath, destPath, options, days=30):
     """
     Similar to the above but uploads a tree of files.
     """
-    msg("Uploading tree at {}...".format(srcPath))
+    msg(f"Uploading tree at {srcPath}...")
 
     if options.release:
         host = 'wxpython-release'
@@ -767,17 +752,17 @@ def uploadTree(srcPath, destPath, options, days=30):
     runcmd(cmd)
 
     # Upload the tree
-    cmd = 'scp -r {} {}:{}'.format(srcPath, host, uploadDir)
+    cmd = f'scp -r {srcPath} {host}:{uploadDir}'
     runcmd(cmd)
 
     # Make sure it is readable by all
-    cmd = 'ssh {} "chmod -R a+r {}"'.format(host, uploadDir)
+    cmd = f'ssh {host} "chmod -R a+r {uploadDir}"'
     runcmd(cmd)
 
     if not options.release:
         # Remove files that were last modified more than `days` days ago
         msg("Cleaning up old builds.")
-        cmd = 'ssh {} "find {} -type f -mtime +{} -delete"'.format(host, uploadDir, days)
+        cmd = f'ssh {host} "find {uploadDir} -type f -mtime +{days} -delete"'
         runcmd(cmd)
 
     msg("Tree upload and cleanup complete!")
@@ -792,9 +777,9 @@ def checkCompiler(quiet=False):
               "mc = msvc.MSVCCompiler(); " \
               "mc.initialize(); " \
               "print(mc.cc)"
-        CC = runcmd('"%s" -c "%s"' % (PYTHON, cmd), getOutput=True, echoCmd=False)
+        CC = runcmd(f'"{PYTHON}" -c "{cmd}"', getOutput=True, echoCmd=False)
         if not quiet:
-            msg("MSVC: %s" % CC)
+            msg(f"MSVC: {CC}")
 
         # Now get the environment variables which that compiler needs from
         # its vcvarsall.bat command and load them into this process's
@@ -803,7 +788,7 @@ def checkCompiler(quiet=False):
               "arch = msvc.PLAT_TO_VCVARS[msvc.get_platform()]; " \
               "env = msvc.query_vcvarsall(msvc.VERSION, arch); " \
               "print(env)"
-        env = eval(runcmd('"%s" -c "%s"' % (PYTHON, cmd), getOutput=True, echoCmd=False))
+        env = eval(runcmd(f'"{PYTHON}" -c "{cmd}"', getOutput=True, echoCmd=False))
 
         def _b(v):
             return str(v)
@@ -848,8 +833,7 @@ def getWafBuildBase():
 
 def getBashPath():
     """Check if there is a bash.exe on the PATH"""
-    bash = which('bash.exe')
-    return bash
+    return which('bash.exe')
 
 
 def dos2bashPath(path):
@@ -864,19 +848,18 @@ def dos2bashPath(path):
     # Note that MSYS2 (and Git Bash) now also have cygpath so this should
     # work there too.
     if cygpath:
-        path = runcmd('"{}" -u "{}"'.format(cygpath, path), getOutput=True, echoCmd=False)
-        return path
+        path = runcmd(f'"{cygpath}" -u "{path}"', getOutput=True, echoCmd=False)
     elif wsl:
         # Are we using Windows System for Linux? (untested)
-        path = runcmd('"{}" wslpath -a -u "{}"'.format(wsl, path), getOutput=True, echoCmd=False)
-        return path
+        path = runcmd(f'"{wsl}" wslpath -a -u "{path}"', getOutput=True, echoCmd=False)
     else:
         # Otherwise, do a simple translate and hope for the best?
         # c:/foo --> /c/foo
         # TODO: Check this!!
         drive, rest = os.path.splitdrive(path)
-        path = '/{}/{}'.format(drive[0], rest)
-        return path
+        path = f'/{drive[0]}/{rest}'
+
+    return path
 
 
 def bash2dosPath(path):
@@ -890,12 +873,10 @@ def bash2dosPath(path):
     # Note that MSYS2 (and Git Bash) now also have cygpath so this should
     # work there too.
     if cygpath:
-        path = runcmd('"{}" -w "{}"'.format(cygpath, path), getOutput=True, echoCmd=False)
-        return path
+        path = runcmd(f'"{cygpath}" -w "{path}"', getOutput=True, echoCmd=False)
     elif wsl:
         # Are we using Windows System for Linux? (untested)
-        path = runcmd('"{}" wslpath -a -w "{}"'.format(wsl, path), getOutput=True, echoCmd=False)
-        return path
+        path = runcmd(f'"{wsl}" wslpath -a -w "{path}"', getOutput=True, echoCmd=False)
     else:
         # Otherwise, do a simple translate and hope for the best?
         # /c/foo --> c:/foo
@@ -903,8 +884,9 @@ def bash2dosPath(path):
         # cases cygpath or wsl should be available.
         components = path.split('/')
         assert components[0] == '' and len(components[1]) == 1, "Expecting a path like /c/foo"
-        path = components[1] + ':/' + '/'.join(components[2:])
-        return path
+        path = f'{components[1]}:/' + '/'.join(components[2:])
+
+    return path
 
 
 def do_regenerate_sysconfig():
@@ -972,12 +954,12 @@ def _doDox(arg):
 
         d = posixjoin(wxDir(), 'docs/doxygen')
         d = d.replace('\\', '/')
-        cmd = '"{}" -l -c "cd {} && ./regen.sh {}"'.format(bash, d, arg)
+        cmd = f'"{bash}" -l -c "cd {d} && ./regen.sh {arg}"'
     else:
         os.environ['DOXYGEN'] = doxCmd
         os.environ['WX_SKIP_DOXYGEN_VERSION_CHECK'] = '1'
         pwd = pushDir(posixjoin(wxDir(), 'docs/doxygen'))
-        cmd = 'bash ./regen.sh %s' % arg
+        cmd = f'bash ./regen.sh {arg}'
     runcmd(cmd)
 
 
@@ -1000,11 +982,12 @@ def cmd_docset_wx(options, args):
     _doDox('docset')
 
     # Remove any existing docset in the dist dir and move the new docset in
-    srcname = posixjoin(wxDir(), 'docs/doxygen/out/docset',
-                        'wxWidgets-%s.docset' % wxversion2)
-    destname = 'dist/wxWidgets-%s.docset' % wxversion3
+    srcname = posixjoin(
+        wxDir(), 'docs/doxygen/out/docset', f'wxWidgets-{wxversion2}.docset'
+    )
+    destname = f'dist/wxWidgets-{wxversion3}.docset'
     if not os.path.isdir(srcname):
-        msg('ERROR: %s not found' % srcname)
+        msg(f'ERROR: {srcname} not found')
         sys.exit(1)
     if os.path.isdir(destname):
         shutil.rmtree(destname)
@@ -1020,8 +1003,8 @@ def cmd_docset_py(options, args):
         sys.exit(1)
 
     # clear out any old docset build
-    name = 'wxPython-{}'.format(cfg.VERSION)
-    docset = posixjoin('dist', '{}.docset'.format(name))
+    name = f'wxPython-{cfg.VERSION}'
+    docset = posixjoin('dist', f'{name}.docset')
     if os.path.isdir(docset):
         shutil.rmtree(docset)
 
@@ -1038,21 +1021,27 @@ def cmd_docset_py(options, args):
 
     # Remove the sidebar from the pages in the docset
     msg('Removing sidebar from docset pages...')
-    _removeSidebar(opj('dist', name+'.docset', 'Contents', 'Resources', 'Documents'))
+    _removeSidebar(
+        opj('dist', f'{name}.docset', 'Contents', 'Resources', 'Documents')
+    )
 
     # build the tarball
     msg('Archiving Phoenix docset...')
-    rootname = "wxPython-docset-{}".format(cfg.VERSION)
-    tarfilename = posixjoin(phoenixDir(), 'dist', '{}.tar.gz'.format(rootname))
+    rootname = f"wxPython-docset-{cfg.VERSION}"
+    tarfilename = posixjoin(phoenixDir(), 'dist', f'{rootname}.tar.gz')
     if os.path.exists(tarfilename):
         os.remove(tarfilename)
     with tarfile.open(name=tarfilename, mode="w:gz") as tarball:
-        tarball.add(opj('dist', name+'.docset'), name+'.docset', filter=_setTarItemPerms)
+        tarball.add(
+            opj('dist', f'{name}.docset'),
+            f'{name}.docset',
+            filter=_setTarItemPerms,
+        )
 
     if options.upload:
         uploadPackage(tarfilename, options)
 
-    msg("Docset file built at %s" % tarfilename)
+    msg(f"Docset file built at {tarfilename}")
 
 
 
@@ -1066,11 +1055,9 @@ def _removeSidebar(path):
             text = f.read()
         text = text.replace('<script src="_static/javascript/sidebar.js" type="text/javascript"></script>', '')
         soup = BeautifulSoup(text, 'html.parser')
-        tag = soup.find('div', 'sphinxsidebar')
-        if tag:
+        if tag := soup.find('div', 'sphinxsidebar'):
             tag.extract()
-        tag = soup.find('div', 'document')
-        if tag:
+        if tag := soup.find('div', 'document'):
             tag.attrs['class'] = ['document-no-sidebar']
         text = unicode(soup) if PY2 else str(soup)
         with textfile_open(filename, 'wt') as f:
@@ -1086,7 +1073,9 @@ def cmd_docset(options, args):
 def cmd_etg(options, args):
     cmdTimer = CommandTimer('etg')
     cfg = Config()
-    assert os.path.exists(cfg.DOXY_XML_DIR), "Doxygen XML folder not found: " + cfg.DOXY_XML_DIR
+    assert os.path.exists(
+        cfg.DOXY_XML_DIR
+    ), f"Doxygen XML folder not found: {cfg.DOXY_XML_DIR}"
 
     pwd = pushDir(cfg.ROOT_DIR)
 
@@ -1115,7 +1104,7 @@ def cmd_etg(options, args):
 
         # run the script only if any dependencies are newer
         if newer_group(deps, sipfile):
-            runcmd('"%s" %s %s' % (PYTHON, script, flags))
+            runcmd(f'"{PYTHON}" {script} {flags}')
 
 
 def cmd_sphinx(options, args):
@@ -1129,16 +1118,16 @@ def cmd_sphinx(options, args):
     if not os.path.isdir(sphinxDir):
         raise Exception('Missing sphinx folder in the distribution')
 
-    textFiles = glob.glob(sphinxDir + '/*.txt')
+    textFiles = glob.glob(f'{sphinxDir}/*.txt')
     if not textFiles:
         raise Exception('No documentation files found. Please run "build.py touch etg" first')
 
     # Copy the rst files into txt files
     restDir = os.path.join(sphinxDir, 'rest_substitutions', 'overviews')
-    rstFiles = glob.glob(restDir + '/*.rst')
+    rstFiles = glob.glob(f'{restDir}/*.rst')
     for rst in rstFiles:
         rstName = os.path.split(rst)[1]
-        txt = os.path.join(sphinxDir, os.path.splitext(rstName)[0] + '.txt')
+        txt = os.path.join(sphinxDir, f'{os.path.splitext(rstName)[0]}.txt')
         copyIfNewer(rst, txt)
 
     genIndexes(sphinxDir)
@@ -1147,7 +1136,9 @@ def cmd_sphinx(options, args):
     # Copy the hand-edited top level doc files too
     rstFiles = glob.glob(os.path.join(phoenixDir(), 'docs', '*.rst'))
     for rst in rstFiles:
-        txt = os.path.join(sphinxDir, os.path.splitext(os.path.basename(rst))[0] + '.txt')
+        txt = os.path.join(
+            sphinxDir, f'{os.path.splitext(os.path.basename(rst))[0]}.txt'
+        )
         copyIfNewer(rst, txt)
 
     makeHeadings()
@@ -1155,7 +1146,7 @@ def cmd_sphinx(options, args):
     pwd2 = pushDir(sphinxDir)
     buildDir = os.path.join(sphinxDir, 'build')
     htmlDir = os.path.join(phoenixDir(), 'docs', 'html')
-    runcmd('{} -m sphinx -b html -d {}/doctrees . {}'.format(PYTHON, buildDir, htmlDir))
+    runcmd(f'{PYTHON} -m sphinx -b html -d {buildDir}/doctrees . {htmlDir}')
     del pwd2
 
     msg('Postprocessing sphinx output...')
@@ -1172,10 +1163,10 @@ def cmd_wxlib(options, args):
         libDir = os.path.join(phoenixDir(), 'wx', wx_pkg)
 
         if not os.path.isdir(libDir):
-            raise Exception('Missing wx.{} folder in the distribution'.format(wx_pkg))
+            raise Exception(f'Missing wx.{wx_pkg} folder in the distribution')
 
         init_name = os.path.join(libDir, '__init__.py')
-        import_name = 'wx.{}'.format(wx_pkg)
+        import_name = f'wx.{wx_pkg}'
 
         ModuleHunter(init_name, import_name, version3)
 
@@ -1196,8 +1187,8 @@ def cmd_bdist_docs(options, args):
     cfg = Config()
 
     msg("Archiving wxPython Phoenix documentation...")
-    rootname = "%s-docs-%s" % (baseName, cfg.VERSION)
-    tarfilename = posixjoin(phoenixDir(), 'dist', '%s.tar.gz' % rootname)
+    rootname = f"{baseName}-docs-{cfg.VERSION}"
+    tarfilename = posixjoin(phoenixDir(), 'dist', f'{rootname}.tar.gz')
 
     if not os.path.exists('dist'):
         os.makedirs('dist')
@@ -1209,10 +1200,14 @@ def cmd_bdist_docs(options, args):
                     filter=_setTarItemPerms)
 
     if options.upload:
-        uploadPackage(tarfilename, options, keep=5,
-                      mask='%s-docs-%s*' % (baseName, cfg.VER_MAJOR))
+        uploadPackage(
+            tarfilename,
+            options,
+            keep=5,
+            mask=f'{baseName}-docs-{cfg.VER_MAJOR}*',
+        )
 
-    msg('Documentation tarball built at %s' % tarfilename)
+    msg(f'Documentation tarball built at {tarfilename}')
 
 
     # # pythonhosted.org can host the wxPython documentation for us, so let's
@@ -1264,15 +1259,15 @@ def cmd_sip(options, args):
         tmpdir = tmpdir.replace('\\', '/')
         src_name = src_name.replace('\\', '/')
         base = os.path.basename(os.path.splitext(src_name)[0])
-        sbf = posixjoin(cfg.SIPOUT, base) + '.sbf'
+        sbf = f'{posixjoin(cfg.SIPOUT, base)}.sbf'
         pycode = base[1:] # remove the leading _
-        pycode = posixjoin(cfg.PKGDIR, pycode) + '.py'
+        pycode = f'{posixjoin(cfg.PKGDIR, pycode)}.py'
 
         # Check if any of the included files are newer than the .sbf file
         # produced by the previous run of sip. If not then we don't need to
         # run sip again.
-        etg = loadETG(posixjoin('etg', base + '.py'))
-        sipFiles = getSipFiles(etg.INCLUDES) + [opj(cfg.SIPGEN, base+'.sip')]
+        etg = loadETG(posixjoin('etg', f'{base}.py'))
+        sipFiles = getSipFiles(etg.INCLUDES) + [opj(cfg.SIPGEN, f'{base}.sip')]
         if not newer_group(sipFiles, sbf) and os.path.exists(pycode):
             continue
 
@@ -1282,7 +1277,7 @@ def cmd_sip(options, args):
 
         # SIP extracts are used to pull python snippets and put them into the
         # module's .py file
-        pycode = 'pycode'+base+':'+pycode
+        pycode = f'pycode{base}:{pycode}'
 
         sip_runner(src_name,
             abi_version = cfg.SIP_ABI,  # siplib abi version
@@ -1340,10 +1335,10 @@ def cmd_sip(options, args):
         # Check each file in tmpdir to see if it is different than the same file
         # in cfg.SIPOUT. If so then copy the new one to cfg.SIPOUT, otherwise
         # ignore it.
-        for src in glob.glob(tmpdir + '/*'):
+        for src in glob.glob(f'{tmpdir}/*'):
             dest = opj(cfg.SIPOUT, os.path.basename(src))
             if not os.path.exists(dest):
-                msg('%s is a new file, copying...' % os.path.basename(src))
+                msg(f'{os.path.basename(src)} is a new file, copying...')
                 srcTxt = processSrc(src, options.keep_hash_lines)
                 with textfile_open(dest, 'wt') as f:
                     f.write(srcTxt)
@@ -1353,10 +1348,8 @@ def cmd_sip(options, args):
             with textfile_open(dest, 'rt') as f:
                 destTxt = f.read()
 
-            if srcTxt == destTxt:
-                pass
-            else:
-                msg('%s is changed, copying...' % os.path.basename(src))
+            if srcTxt != destTxt:
+                msg(f'{os.path.basename(src)} is changed, copying...')
                 with textfile_open(dest, 'wt') as f:
                     f.write(srcTxt)
 
@@ -1381,25 +1374,13 @@ def cmd_test(options, args, tests=None):
     # --boxed runs each test in a new process (only for posix *&##$#@$^!!)
     # -n is the number of processes to run in parallel
     # --timeout will kill the test process if it gets stuck
-    jobs = '-n{}'.format(options.pytest_jobs) if options.pytest_jobs else ''
-    boxed = '--forked' if not isWindows else ''
+    jobs = f'-n{options.pytest_jobs}' if options.pytest_jobs else ''
+    boxed = '' if isWindows else '--forked'
     sec = options.pytest_timeout
-    timeout = '--timeout={}'.format(sec) if sec and sec != "0" else ''
-    cmd = '"{}" -m pytest {} {} {} {} {} '.format(
-        PYTHON,
-        '-v' if options.verbose else '',
-        boxed,
-        jobs,
-        timeout,
-        options.extra_pytest)
+    timeout = f'--timeout={sec}' if sec and sec != "0" else ''
+    cmd = f""""{PYTHON}" -m pytest {'-v' if options.verbose else ''} {boxed} {jobs} {timeout} {options.extra_pytest} """
 
-    if not tests:
-        # let pytest find all tests in the unittest folder
-        cmd += 'unittests'
-    else:
-        # otherwise, run only the test modules given
-        cmd += ' '.join(tests)
-
+    cmd += ' '.join(tests) if tests else 'unittests'
     runcmd(cmd, fatal=False)
 
 

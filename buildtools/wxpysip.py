@@ -50,7 +50,7 @@ def sip_runner(
     disabled_features=[],       # add <FEATURE> to the list of disabled features
     ):
 
-    print("Running SIP code generator on: {}".format(specification))
+    print(f"Running SIP code generator on: {specification}")
 
     generated_files = []
     try:
@@ -105,6 +105,6 @@ def generateBuildFile(sbf_file, generated_files):
     header = os.path.basename(header)
     sources = [os.path.basename(n) for n in sources]
     with open(sbf_file, 'w') as f:
-        f.write("sources = {}\n".format(' '.join(sources)))
-        f.write("headers = {}\n".format(header))
+        f.write(f"sources = {' '.join(sources)}\n")
+        f.write(f"headers = {header}\n")
 

@@ -8,11 +8,8 @@ globalItems = ['New', 'Open', 'Save', 'Save As...', 'Cut', 'Copy', 'Paste',
                'Delete', 'Select All', 'Find', 'About', 'Help', 'Exit',
                'Python is the Best!']
 random.shuffle(globalItems)
-globalOrder = []
 length = len(globalItems)
-# print(length)
-for num in range(0, length):
-    globalOrder.append(num)
+globalOrder = list(range(0, length))
 random.shuffle(globalOrder)
 # print(len(globalOrder))
 
@@ -31,8 +28,9 @@ class MyRearrangeDialog(wx.RearrangeDialog):
         sizer.Add(wx.StaticText(panel, wx.ID_ANY,
                                 "Number of checked boxes:"))
         self.lenItems = len(items)
-        self.tc = wx.TextCtrl(panel, wx.ID_ANY, "%s" % self.lenItems,
-                              style=wx.TE_READONLY)
+        self.tc = wx.TextCtrl(
+            panel, wx.ID_ANY, f"{self.lenItems}", style=wx.TE_READONLY
+        )
         self.lc.Bind(wx.EVT_CHECKLISTBOX, self.OnCheck)
         self.lc.Bind(wx.EVT_LISTBOX, self.OnListBox)
         self.lc.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
@@ -63,7 +61,7 @@ class MyRearrangeDialog(wx.RearrangeDialog):
         self.checkedItems = self.lc.GetCheckedItems()
         self.checkedStrings = self.lc.GetCheckedStrings()
         #Update the TextCtrl
-        self.tc.SetValue("%s" % len(self.checkedItems))
+        self.tc.SetValue(f"{len(self.checkedItems)}")
 
     def OnListBox(self, event):
         self.log.write('You Selected %s\n' % (self.lc.GetString(event.GetSelection())))
@@ -73,7 +71,7 @@ class MyRearrangeDialog(wx.RearrangeDialog):
                                     self.lc.IsChecked(event.GetSelection())))
         #Update the TextCtrl
         self.checkedItems = self.lc.GetCheckedItems()
-        self.tc.SetValue("%s" % len(self.checkedItems))
+        self.tc.SetValue(f"{len(self.checkedItems)}")
 
     def OnUnCheckOrCheckAll(self, event):
         doWhat = str(event.GetId()).endswith('1')
@@ -84,7 +82,7 @@ class MyRearrangeDialog(wx.RearrangeDialog):
             else:
                 self.lc.Check(i, False)
         self.checkedItems = self.lc.GetCheckedItems()
-        self.tc.SetValue("%s" % len(self.checkedItems))
+        self.tc.SetValue(f"{len(self.checkedItems)}")
 
     def OnContextMenu(self, event):
         menu = wx.Menu()
@@ -137,8 +135,7 @@ class TestPanel(wx.Panel):
 
 
 def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
-    return win
+    return TestPanel(nb, log)
 
 
 #---------------------------------------------------------------------------

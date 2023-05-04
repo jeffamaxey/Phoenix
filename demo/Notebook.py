@@ -103,8 +103,7 @@ class TestNB(wx.Notebook):
 #----------------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    testWin = TestNB(nb, -1, log)
-    return testWin
+    return TestNB(nb, -1, log)
 
 #----------------------------------------------------------------------------
 

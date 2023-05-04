@@ -51,9 +51,7 @@ class TestValueWindow(gizmos.TreeCompanionWindow):
 
     # This method is called to draw each item in the value window
     def DrawItem(self, dc, itemId, rect):
-        tree = self.GetTreeCtrl()
-
-        if tree:
+        if tree := self.GetTreeCtrl():
             text = "This is "
             parent = tree.GetItemParent(itemId)
 
@@ -61,7 +59,7 @@ class TestValueWindow(gizmos.TreeCompanionWindow):
                 ptext = tree.GetItemText(parent)
                 text = text + ptext + " --> "
 
-            text = text + tree.GetItemText(itemId)
+            text += tree.GetItemText(itemId)
             pen = wx.Pen(
                 wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DLIGHT),
                 1, wx.PENSTYLE_SOLID
@@ -118,12 +116,13 @@ class TestPanel(wx.Panel):
 def runTest(frame, nb, log):
     if wx.Platform == "__WXMAC__":
         from wx.lib.msgpanel import MessagePanel
-        win = MessagePanel(nb, 'This demo currently fails on the Mac. The problem is being looked into...',
-                           'Sorry', wx.ICON_WARNING)
-        return win
-
-    win = TestPanel(nb, log)
-    return win
+        return MessagePanel(
+            nb,
+            'This demo currently fails on the Mac. The problem is being looked into...',
+            'Sorry',
+            wx.ICON_WARNING,
+        )
+    return TestPanel(nb, log)
 
 
 #----------------------------------------------------------------------

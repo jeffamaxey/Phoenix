@@ -34,10 +34,7 @@ class MyPrintout(wx.Printout):
 
     def HasPage(self, page):
         self.log.WriteText("MyPrintout.HasPage: %d\n" % page)
-        if page <= 2: # we only have 2 pages in this document
-            return True
-        else:
-            return False
+        return page <= 2
 
     def GetPageInfo(self):
         self.log.WriteText("MyPrintout.GetPageInfo\n")
@@ -169,8 +166,7 @@ class TestPrintPanel(wx.Panel):
 #----------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    win = TestPrintPanel(nb, frame, log)
-    return win
+    return TestPrintPanel(nb, frame, log)
 
 
 #----------------------------------------------------------------------

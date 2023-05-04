@@ -33,14 +33,7 @@ class TestPanel(wx.Panel):
 
     def OnButton2(self, evt):
         try:
-            if True:
-                sound = wx.adv.Sound(opj('data/plan.wav'))
-            else:
-                # sounds can also be loaded from a buffer object
-                with open(opj('data/plan.wav'), 'rb') as fid:
-                    data = fid.read()
-                sound = wx.SoundFromData(data)
-
+            sound = wx.adv.Sound(opj('data/plan.wav'))
             self.log.write("before Play...\n")
             sound.Play(wx.adv.SOUND_ASYNC)
             self.sound = sound  # save a reference (This shouldn't be needed, but there seems to be a bug...)
@@ -71,8 +64,7 @@ class TestPanel(wx.Panel):
 #----------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
-    return win
+    return TestPanel(nb, log)
 
 #----------------------------------------------------------------------
 

@@ -29,10 +29,7 @@ class SampleWindow(wx.Window):
                            style=wx.SIMPLE_BORDER
                            )
         self.text = text
-        if size != wx.DefaultSize:
-            self.bestsize = size
-        else:
-            self.bestsize = (80,25)
+        self.bestsize = size if size != wx.DefaultSize else (80, 25)
         self.SetSize(self.GetBestSize())
 
         self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -51,8 +48,7 @@ class SampleWindow(wx.Window):
         self.Refresh()
 
     def OnCloseParent(self, evt):
-        p = wx.GetTopLevelParent(self)
-        if p:
+        if p := wx.GetTopLevelParent(self):
             p.Close()
 
     def DoGetBestSize(self):
@@ -583,9 +579,7 @@ class TestSelectionPanel(wx.Panel):
     def OnDClick(self, event):
         pos = self.list.GetSelection()
         title = theTests[pos][0]
-        func = theTests[pos][1]
-
-        if func:
+        if func := theTests[pos][1]:
             win = TestFrame(self, title, func)
             win.CentreOnParent(wx.BOTH)
             win.Show(True)
@@ -594,8 +588,7 @@ class TestSelectionPanel(wx.Panel):
 #----------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    win = TestSelectionPanel(nb)
-    return win
+    return TestSelectionPanel(nb)
 
 overview = ""
 

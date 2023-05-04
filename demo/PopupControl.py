@@ -51,11 +51,9 @@ class TestDateControl(pop.PopupControl):
             m = int(dmy[1]) - 1
             y = int(dmy[2])
 
-            if d > 0 and d < 31:
-                if m >= 0 and m < 12:
-                    if y > 1000:
-                        self.cal.SetDate(wx.DateTime.FromDMY(d,m,y))
-                        didSet = True
+            if d > 0 and d < 31 and m >= 0 and m < 12 and y > 1000:
+                self.cal.SetDate(wx.DateTime.FromDMY(d,m,y))
+                didSet = True
 
         if not didSet:
             self.cal.SetDate(wx.DateTime.Today())
@@ -72,8 +70,7 @@ class TestPanel(wx.Panel):
 #----------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
-    return win
+    return TestPanel(nb, log)
 
 #----------------------------------------------------------------------
 

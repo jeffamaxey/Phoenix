@@ -46,8 +46,7 @@ class TestRadioBox(wx.Panel):
 #---------------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    win = TestRadioBox(nb, log)
-    return win
+    return TestRadioBox(nb, log)
 
 
 

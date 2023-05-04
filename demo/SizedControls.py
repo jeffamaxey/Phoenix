@@ -422,8 +422,7 @@ class TestPanel(sc.SizedScrolledPanel):
         dlg.Show()
 
 def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
-    return win
+    return TestPanel(nb, log)
 
 
 if __name__ == '__main__':

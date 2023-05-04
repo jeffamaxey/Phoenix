@@ -44,7 +44,7 @@ def GetRandomColorHexStr():
         random.shuffle(HEX) # Twice for doubles and good luck :)
         # print(HEX[item])
         hexstr = hexstr + str(HEX[item])
-    return '#%s'%hexstr
+    return f'#{hexstr}'
 
 
 class TestPanel(wx.Panel):
@@ -107,7 +107,7 @@ class TestPanel(wx.Panel):
         random.shuffle(randBmps)
         random.shuffle(randStrs)
         tip = wx.adv.RichToolTip("Randomly RichToolTip",randStrs[randint])
-        tip.SetIcon(wx.Icon("bitmaps/%s" %randBmps[randint]))
+        tip.SetIcon(wx.Icon(f"bitmaps/{randBmps[randint]}"))
         tip.SetTipKind(randint)
         tip.SetBackgroundColour(GetRandomColorHexStr())
         tip.ShowFor(self.btn6)
@@ -116,8 +116,7 @@ class TestPanel(wx.Panel):
 
 
 def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
-    return win
+    return TestPanel(nb, log)
 
 
 #---------------------------------------------------------------------------

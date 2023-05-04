@@ -89,21 +89,21 @@ class TestPanel(wx.Panel):
         # process the data.
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.log.WriteText('You selected "%s"' % path)
+            self.log.WriteText(f'You selected "{path}"')
 
-            # Normally, at this point you would save your data using the file and path
-            # data that the user provided to you, but since we didn't actually start
-            # with any data to work with, that would be difficult.
-            #
-            # The code to do so would be similar to this, assuming 'data' contains
-            # the data you want to save:
-            #
-            # fp = file(path, 'w') # Create file anew
-            # fp.write(data)
-            # fp.close()
-            #
-            # You might want to add some error checking :-)
-            #
+                # Normally, at this point you would save your data using the file and path
+                # data that the user provided to you, but since we didn't actually start
+                # with any data to work with, that would be difficult.
+                #
+                # The code to do so would be similar to this, assuming 'data' contains
+                # the data you want to save:
+                #
+                # fp = file(path, 'w') # Create file anew
+                # fp.write(data)
+                # fp.close()
+                #
+                # You might want to add some error checking :-)
+                #
 
         # Note that the current working dir didn't change. This is good since
         # that's the way we set it up.
@@ -118,8 +118,7 @@ class TestPanel(wx.Panel):
 
 
 def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
-    return win
+    return TestPanel(nb, log)
 
 #---------------------------------------------------------------------------
 

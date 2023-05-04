@@ -20,7 +20,7 @@ def TestLinesFromBuffer(dc, log):
         x2 = np.cos(vs * 16 * np.pi) * w/2 * vs + w/2
         y1 = np.sin(vs * 12 * np.pi) * w/2 * vs + h/2
         y2 = np.sin(vs * 16 * np.pi) * w/2 * vs + h/2
-        
+
 
         # Data has to be the same size as a C integer
         pts1 = np.append(x1, y1, 1).astype('intc')
@@ -30,17 +30,16 @@ def TestLinesFromBuffer(dc, log):
         t1 = time.time()
         dc.DrawLines(pts1)
         t2 = time.time()
-        
+
         dc.SetPen(wx.RED_PEN)
         t3 = time.time()
         dc.DrawLinesFromBuffer(pts2)
         t4 = time.time()
-        
+
         log.write("%s pts: %s seconds with DrawLines %s seconds with DrawLinesFromBuffer\n" % (npts, t2 - t1, t4 - t3))
 
     except ImportError:
         log.write("Couldn't import numpy")
-        pass
 
 
 
@@ -69,33 +68,34 @@ class DrawPanel(wx.Panel):
 
 def runTest(frame, nb, log):
     global npts
-    
+
     panel = wx.Panel(nb, -1)
     vsizer = wx.BoxSizer(wx.VERTICAL)
     hsizer = wx.BoxSizer(wx.HORIZONTAL)
     hsizer.Add(wx.StaticText(panel, -1, "# of Points"), 0, wx.ALIGN_CENTER|wx.ALL, 5)
     npts_ctrl = wx.TextCtrl(panel, -1, str(npts))
     hsizer.Add(npts_ctrl, 0, wx.ALIGN_CENTER|wx.ALL, 5)
-    
+
     button = wx.Button(panel, -1, "Refresh")
     hsizer.Add(button, 0, wx.ALIGN_CENTER|wx.ALL, 5)
     vsizer.Add(hsizer, 0, wx.ALIGN_CENTER, 0)
-    
+
     win = DrawPanel(panel, TestLinesFromBuffer, log)
     vsizer.Add(win, 1, wx.GROW, 0)
     panel.SetSizer(vsizer)
-    
+
     def update_npts(evt):
         global npts
-        
+
         val = npts_ctrl.GetValue()
         try:
             npts = int(val)
         except ValueError:
-            log.write("Error converting %s to an int" % (val))
+            log.write(f"Error converting {val} to an int")
         win.Refresh()
+
     button.Bind(wx.EVT_BUTTON, update_npts)
-    
+
     return panel
 
 #----------------------------------------------------------------------

@@ -94,7 +94,7 @@ class IntProperty2(wxpg.PGProperty):
                 return (True, v)
         except (ValueError, TypeError):
             if flags & wxpg.PG_REPORT_ERROR:
-                wx.MessageBox("Cannot convert '%s' into a number."%s, "Error")
+                wx.MessageBox(f"Cannot convert '{s}' into a number.", "Error")
         return (False, None)
 
     def IntToValue(self, v, flags):
@@ -102,9 +102,7 @@ class IntProperty2(wxpg.PGProperty):
         If failed, return False or (False, None). If success, return tuple
         (True, newValue).
         """
-        if (self.GetValue() != v):
-            return (True, v)
-        return False
+        return (True, v) if (self.GetValue() != v) else False
 
     def ValidateValue(self, value, validationInfo):
         """ Let's limit the value to range -10000 and 10000.
@@ -116,10 +114,7 @@ class IntProperty2(wxpg.PGProperty):
         # Mark the cell if validation failed
         validationInfo.SetFailureBehavior(wxpg.PG_VFB_MARK_CELL)
 
-        if value is None or value < -10000 or value > 10000:
-            return False
-
-        return True
+        return value is not None and value >= -10000 and value <= 10000
 
 
 class SizeProperty(wxpg.PGProperty):
@@ -217,12 +212,12 @@ class DirsProperty(wxpg.ArrayStringProperty):
         """
         if not delim:
             delim = self.GetAttribute("Delimiter")
-            if not delim:
-                delim = ','
+        if not delim:
+            delim = ','
 
         ls = self.GetValue()
-        if delim == '"' or delim == "'":
-            text = ' '.join(['%s%s%s'%(delim,a,delim) for a in ls])
+        if delim in ['"', "'"]:
+            text = ' '.join([f'{delim}{a}{delim}' for a in ls])
         else:
             text = ', '.join(ls)
         self.m_display = text
@@ -233,7 +228,7 @@ class DirsProperty(wxpg.ArrayStringProperty):
             (True, newValue).
         """
         delim = self.GetAttribute("Delimiter")
-        if delim == '"' or delim == "'":
+        if delim in ['"', "'"]:
             # Proper way to call same method from super class
             return super(DirsProperty, self).StringToValue(text, 0)
         v = [a.strip() for a in text.split(delim)]
@@ -241,28 +236,26 @@ class DirsProperty(wxpg.ArrayStringProperty):
 
 
     def OnEvent(self, propgrid, primaryEditor, event):
-        if event.GetEventType() == wx.wxEVT_COMMAND_BUTTON_CLICKED:
-            dlg = wx.DirDialog(propgrid,
-                               _("Select a directory to be added to "
-                                 "the list:"))
+        if event.GetEventType() != wx.wxEVT_COMMAND_BUTTON_CLICKED:
+            return False
+        dlg = wx.DirDialog(propgrid,
+                           _("Select a directory to be added to "
+                             "the list:"))
 
-            if dlg.ShowModal() == wx.ID_OK:
-                new_path = dlg.GetPath()
-                old_value = self.m_value
-                if old_value:
-                    new_value = list(old_value)
-                    new_value.append(new_path)
-                else:
-                    new_value = [new_path]
-                self.SetValueInEvent(new_value)
-                retval = True
+        if dlg.ShowModal() == wx.ID_OK:
+            new_path = dlg.GetPath()
+            if old_value := self.m_value:
+                new_value = list(old_value)
+                new_value.append(new_path)
             else:
-                retval = False
+                new_value = [new_path]
+            self.SetValueInEvent(new_value)
+            retval = True
+        else:
+            retval = False
 
-            dlg.Destroy()
-            return retval
-
-        return False
+        dlg.Destroy()
+        return retval
 
 
 
@@ -375,9 +368,7 @@ class SingleChoiceDialogAdapter(wxpg.PGEditorDialogAdapter):
         self.choices = choices
 
     def DoShowDialog(self, propGrid, property):
-        s = wx.GetSingleChoice("Message", "Caption", self.choices)
-
-        if s:
+        if s := wx.GetSingleChoice("Message", "Caption", self.choices):
             self.SetValue(s)
             return True
 
@@ -389,12 +380,7 @@ class SingleChoiceProperty(wxpg.StringProperty):
         wxpg.StringProperty.__init__(self, label, name, value)
 
         # Prepare choices
-        dialog_choices = []
-        dialog_choices.append("Cat")
-        dialog_choices.append("Dog")
-        dialog_choices.append("Gibbon")
-        dialog_choices.append("Otter")
-
+        dialog_choices = ["Cat", "Dog", "Gibbon", "Otter"]
         self.dialog_choices = dialog_choices
 
     def DoGetEditorClass(self):
@@ -827,20 +813,17 @@ class TestPanel( wx.Panel ):
         self.SetAutoLayout(True)
 
     def OnPropGridChange(self, event):
-        p = event.GetProperty()
-        if p:
+        if p := event.GetProperty():
             self.log.write('%s changed to "%s"\n' % (p.GetName(),p.GetValueAsString()))
 
     def OnPropGridSelect(self, event):
-        p = event.GetProperty()
-        if p:
+        if p := event.GetProperty():
             self.log.write('%s selected\n' % (event.GetProperty().GetName()))
         else:
             self.log.write('Nothing selected\n')
 
     def OnDeleteProperty(self, event):
-        p = self.pg.GetSelectedProperty()
-        if p:
+        if p := self.pg.GetSelectedProperty():
             self.pg.DeleteProperty(p)
         else:
             wx.MessageBox("First select a property to delete")
@@ -857,9 +840,9 @@ class TestPanel( wx.Panel ):
                 v = repr(v)
                 if not v or v[0] != '<':
                     if k.startswith('@'):
-                        ss.append('setattr(obj, "%s", %s)'%(k,v))
+                        ss.append(f'setattr(obj, "{k}", {v})')
                     else:
-                        ss.append('obj.%s = %s'%(k,v))
+                        ss.append(f'obj.{k} = {v}')
 
             with MemoDialog(self,
                     "Enter Content for Object Used in SetPropertyValues",
@@ -888,7 +871,7 @@ class TestPanel( wx.Panel ):
             t_end = time.time()
             self.log.write('GetPropertyValues finished in %.0fms\n' %
                            ((t_end-t_start)*1000.0))
-            ss = ['%s: %s'%(k,repr(v)) for k,v in d.items()]
+            ss = [f'{k}: {repr(v)}' for k,v in d.items()]
             with MemoDialog(self,"GetPropertyValues Result",
                            'Contents of resulting dictionary:\n\n'+'\n'.join(ss)) as dlg:
                 dlg.ShowModal()
@@ -904,7 +887,7 @@ class TestPanel( wx.Panel ):
             t_end = time.time()
             self.log.write('GetPropertyValues(as_strings=True) finished in %.0fms\n' %
                            ((t_end-t_start)*1000.0))
-            ss = ['%s: %s'%(k,repr(v)) for k,v in d.items()]
+            ss = [f'{k}: {repr(v)}' for k,v in d.items()]
             with MemoDialog(self,"GetPropertyValues Result",
                            'Contents of resulting dictionary:\n\n'+'\n'.join(ss)) as dlg:
                 dlg.ShowModal()
@@ -928,8 +911,7 @@ class TestPanel( wx.Panel ):
             traceback.print_exc()
 
     def OnPropGridRightClick(self, event):
-        p = event.GetProperty()
-        if p:
+        if p := event.GetProperty():
             self.log.write('%s right clicked\n' % (event.GetProperty().GetName()))
         else:
             self.log.write('Nothing right clicked\n')
@@ -1022,8 +1004,7 @@ class MemoDialog(wx.Dialog):
 #----------------------------------------------------------------------
 
 def runTest( frame, nb, log ):
-    win = TestPanel( nb, log )
-    return win
+    return TestPanel( nb, log )
 
 #----------------------------------------------------------------------
 

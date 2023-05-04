@@ -189,7 +189,7 @@ def runTest(frame, nb, log):
     ed.StyleSetSpec(3, "face:%s,bold,size:%d" % (face2, pb))
     ed.StyleSetSpec(4, "face:%s,size:%d" % (face1, pb-1))
 
-    if wx.VERSION[0:3] < (4, 1, 0, 0, '')[0:3]:
+    if wx.VERSION[:3] < (4, 1, 0, 0, '')[:3]:
         def StartStyling(start, mask=255):
             ed.StartStyling(start, mask)
     else:

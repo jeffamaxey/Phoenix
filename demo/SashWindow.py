@@ -11,8 +11,6 @@ class TestSashWindow(wx.Panel):
         wx.Panel.__init__(self, parent, -1)
 
         self.log = log
-        winids = []
-
         # Create some layout windows
         # A window like a toolbar
         topwin = wx.adv.SashLayoutWindow(
@@ -27,8 +25,7 @@ class TestSashWindow(wx.Panel):
         topwin.SetSashVisible(wx.adv.SASH_BOTTOM, True)
 
         self.topWindow = topwin
-        winids.append(topwin.GetId())
-
+        winids = [topwin.GetId()]
         # A window like a statusbar
         bottomwin = wx.adv.SashLayoutWindow(
                 self, -1, wx.DefaultPosition, (200, 30),
@@ -126,8 +123,7 @@ class TestSashWindow(wx.Panel):
 #---------------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    win = TestSashWindow(nb, log)
-    return win
+    return TestSashWindow(nb, log)
 
 #---------------------------------------------------------------------------
 

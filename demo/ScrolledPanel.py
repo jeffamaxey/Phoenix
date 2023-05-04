@@ -34,7 +34,7 @@ class TestPanel(scrolled.ScrolledPanel):
         fgs1 = wx.FlexGridSizer(cols=2, vgap=4, hgap=4)
 
         for word in words:
-            label = wx.StaticText(panel1, -1, word+":")
+            label = wx.StaticText(panel1, -1, f"{word}:")
 
             # A test for scrolling with a too big control
             #if word == "three":
@@ -103,8 +103,7 @@ class TestPanel(scrolled.ScrolledPanel):
 
 
 def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
-    return win
+    return TestPanel(nb, log)
 
 #----------------------------------------------------------------------
 

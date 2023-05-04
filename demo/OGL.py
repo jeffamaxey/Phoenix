@@ -169,17 +169,14 @@ class DividedShape(ogl.DividedShape):
 
 
     def ReformatRegions(self, canvas=None):
-        rnum = 0
-
         if canvas is None:
             canvas = self.GetCanvas()
 
         dc = wx.ClientDC(canvas)  # used for measuring
 
-        for region in self.GetRegions():
+        for rnum, region in enumerate(self.GetRegions()):
             text = region.GetText()
             self.FormatText(dc, text, rnum)
-            rnum += 1
 
 
     def OnSizingEndDragLeft(self, pt, x, y, keys, attch):
@@ -217,15 +214,7 @@ class MyEvtHandler(ogl.ShapeEvtHandler):
         else:
             redraw = False
             shapeList = canvas.GetDiagram().GetShapeList()
-            toUnselect = []
-
-            for s in shapeList:
-                if s.Selected():
-                    # If we unselect it now then some of the objects in
-                    # shapeList will become invalid (the control points are
-                    # shapes too!) and bad things will happen...
-                    toUnselect.append(s)
-
+            toUnselect = [s for s in shapeList if s.Selected()]
             shape.Select(True, dc)
 
             if toUnselect:
@@ -344,11 +333,7 @@ class TestWindow(ogl.ShapeCanvas):
 
         for x in range(len(self.shapes)):
             fromShape = self.shapes[x]
-            if x+1 == len(self.shapes):
-                toShape = self.shapes[0]
-            else:
-                toShape = self.shapes[x+1]
-
+            toShape = self.shapes[0] if x+1 == len(self.shapes) else self.shapes[x+1]
             line = ogl.LineShape()
             line.SetCanvas(self)
             line.SetPen(wx.BLACK_PEN)
@@ -404,8 +389,7 @@ def runTest(frame, nb, log):
     # before OGL is used.
     ogl.OGLInitialize()
 
-    win = TestWindow(nb, log, frame)
-    return win
+    return TestWindow(nb, log, frame)
 
 #----------------------------------------------------------------------
 

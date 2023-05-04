@@ -49,8 +49,7 @@ class TestPanel(wx.Panel):
 #---------------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    panel = TestPanel(nb)
-    return panel
+    return TestPanel(nb)
 
 
 #---------------------------------------------------------------------------

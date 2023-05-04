@@ -21,7 +21,7 @@ class MyCustomRenderer(dv.DataViewCustomRenderer):
 
 
     def GetValue(self):
-        self.log.write('GetValue: {}'.format(value))
+        self.log.write(f'GetValue: {value}')
         return self.value
 
 
@@ -78,7 +78,7 @@ class MyCustomRenderer(dv.DataViewCustomRenderer):
 
 
     def CreateEditorCtrl(self, parent, labelRect, value):
-        self.log.write('CreateEditorCtrl: %s' % labelRect)
+        self.log.write(f'CreateEditorCtrl: {labelRect}')
         ctrl = wx.TextCtrl(parent,
                            value=value,
                            pos=labelRect.Position,
@@ -92,9 +92,8 @@ class MyCustomRenderer(dv.DataViewCustomRenderer):
 
 
     def GetValueFromEditorCtrl(self, editor):
-        self.log.write('GetValueFromEditorCtrl: %s' % editor)
-        value = editor.GetValue()
-        return value
+        self.log.write(f'GetValueFromEditorCtrl: {editor}')
+        return editor.GetValue()
 
 
     # The LeftClick and Activate methods serve as notifications
@@ -135,10 +134,7 @@ class TestPanel(wx.Panel):
                                    )
 
         # Create an instance of the model
-        if model is None:
-            self.model = TestModel(data, log)
-        else:
-            self.model = model
+        self.model = TestModel(data, log) if model is None else model
         self.dvc.AssociateModel(self.model)
 
         # Now we create some columns.
@@ -179,8 +175,7 @@ def runTest(frame, nb, log):
     musicdata = sorted(musicdata)
     musicdata = [[str(k)] + list(v) for k,v in musicdata]
 
-    win = TestPanel(nb, log, data=musicdata)
-    return win
+    return TestPanel(nb, log, data=musicdata)
 
 #----------------------------------------------------------------------
 

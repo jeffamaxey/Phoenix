@@ -60,7 +60,7 @@ class MyCellEditor(gridlib.GridCellEditor):
         attribute.  In this class the edit control fills the whole cell so
         don't do anything at all in order to reduce flicker.
         """
-        self.log.write("MyCellEditor: PaintBackground {}\n".format(rect))
+        self.log.write(f"MyCellEditor: PaintBackground {rect}\n")
 
 
     def BeginEdit(self, row, col, grid):
@@ -90,10 +90,7 @@ class MyCellEditor(gridlib.GridCellEditor):
         """
         self.log.write("MyCellEditor: EndEdit (%s)\n" % oldVal)
         val = self._tc.GetValue()
-        if val != oldVal:   #self.startValue:
-            return val
-        else:
-            return None
+        return val if val != oldVal else None
 
 
     def ApplyEdit(self, row, col, grid):
@@ -133,8 +130,11 @@ class MyCellEditor(gridlib.GridCellEditor):
         #return super(MyCellEditor, self).IsAcceptedKey(evt)
 
         # or do it ourselves
-        return (not (evt.ControlDown() or evt.AltDown()) and
-                evt.GetKeyCode() != wx.WXK_SHIFT)
+        return (
+            not evt.ControlDown()
+            and not evt.AltDown()
+            and evt.GetKeyCode() != wx.WXK_SHIFT
+        )
 
 
     def StartingKey(self, evt):

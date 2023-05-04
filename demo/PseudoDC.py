@@ -97,9 +97,7 @@ class MyCanvas(wx.ScrolledWindow):
                     break
         elif event.RightDown():
             x,y = self.ConvertEventCoords(event)
-            #l = self.pdc.FindObjectsByBBox(x, y)
-            l = self.pdc.FindObjects(x, y, hitradius)
-            if l:
+            if l := self.pdc.FindObjects(x, y, hitradius):
                 self.pdc.SetIdGreyedOut(l[0], not self.pdc.GetIdGreyedOut(l[0]))
                 r = self.pdc.GetIdBounds(l[0])
                 r.Inflate(4,4)
@@ -172,11 +170,11 @@ class MyCanvas(wx.ScrolledWindow):
         random.seed()
         self.objids = []
         self.boundsdict = {}
-        for i in range(SHAPE_COUNT):
+        for _ in range(SHAPE_COUNT):
             id = wx.NewIdRef()
             dc.SetId(id)
             choice = random.randint(0,8)
-            if choice in (0,1):
+            if choice in {0, 1}:
                 x = random.randint(0, W)
                 y = random.randint(0, H)
                 pen = self.RandomPen()
@@ -185,7 +183,7 @@ class MyCanvas(wx.ScrolledWindow):
                 r = wx.Rect(x,y,1,1)
                 r.Inflate(pen.GetWidth(),pen.GetWidth())
                 dc.SetIdBounds(id,r)
-            elif choice in (2,3):
+            elif choice in {2, 3}:
                 x1 = random.randint(0, W-SW)
                 y1 = random.randint(0, H-SH)
                 x2 = random.randint(x1, x1+SW)
@@ -196,7 +194,7 @@ class MyCanvas(wx.ScrolledWindow):
                 r = wx.Rect(x1,y1,x2-x1,y2-y1)
                 r.Inflate(pen.GetWidth(),pen.GetWidth())
                 dc.SetIdBounds(id,r)
-            elif choice in (4,5):
+            elif choice in {4, 5}:
                 w = random.randint(10, SW)
                 h = random.randint(10, SH)
                 x = random.randint(0, W - w)
@@ -212,11 +210,11 @@ class MyCanvas(wx.ScrolledWindow):
             elif choice == 6:
                 Np = 8 # number of characters in text
                 word = []
-                for i in range(Np):
+                for _ in range(Np):
                     c = chr( random.randint(48, 122) )
                     word.append( c )
                 word = "".join(word)
-                w,h = self.GetFullTextExtent(word)[0:2]
+                w,h = self.GetFullTextExtent(word)[:2]
                 x = random.randint(0, W-w)
                 y = random.randint(0, H-h)
                 dc.SetFont(self.GetFont())
@@ -234,7 +232,7 @@ class MyCanvas(wx.ScrolledWindow):
                 miny = SH
                 maxx = 0
                 maxy = 0
-                for i in range(Np):
+                for _ in range(Np):
                     x = random.randint(0, SW)
                     y = random.randint(0, SH)
                     if x < minx: minx = x

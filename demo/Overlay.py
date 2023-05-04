@@ -87,54 +87,55 @@ class TestPanel(wx.Panel):
 
 
     def OnMouseMove(self, event):
-        if event.Dragging() and event.LeftIsDown():
-            evtPos = event.GetPosition()
+        if not event.Dragging() or not event.LeftIsDown():
+            return
+        evtPos = event.GetPosition()
 
-            try:
-                rect = wx.Rect(topLeft=self.startPos, bottomRight=evtPos)
-            except TypeError as exc:  # topLeft = NoneType. Attempting to double click image or something
-                return
-            except Exception as exc:
-                raise exc
+        try:
+            rect = wx.Rect(topLeft=self.startPos, bottomRight=evtPos)
+        except TypeError as exc:  # topLeft = NoneType. Attempting to double click image or something
+            return
+        except Exception as exc:
+            raise exc
 
-            # Draw the rubber-band rectangle using an overlay so it
-            # will manage keeping the rectangle and the former window
-            # contents separate.
-            dc = wx.ClientDC(self)
-            odc = wx.DCOverlay(self.overlay, dc)
-            odc.Clear()
+        # Draw the rubber-band rectangle using an overlay so it
+        # will manage keeping the rectangle and the former window
+        # contents separate.
+        dc = wx.ClientDC(self)
+        odc = wx.DCOverlay(self.overlay, dc)
+        odc.Clear()
 
-            # Mac's DC is already the same as a GCDC, and it causes
-            # problems with the overlay if we try to use an actual
-            # wx.GCDC so don't try it.  If you do not need to use a
-            # semi-transparent background then you can leave this out.
-            if 'wxMac' not in wx.PlatformInfo:
-                dc = wx.GCDC(dc)
+        # Mac's DC is already the same as a GCDC, and it causes
+        # problems with the overlay if we try to use an actual
+        # wx.GCDC so don't try it.  If you do not need to use a
+        # semi-transparent background then you can leave this out.
+        if 'wxMac' not in wx.PlatformInfo:
+            dc = wx.GCDC(dc)
 
-            # Set the pen, for the box's border
-            dc.SetPen(wx.Pen(colour=self.overlayPenColor.GetColour(),
-                             width=self.overlayPenWidth.GetValue(),
-                             style=self.wxPenStylesDict[self.penstylesCombo.GetString(self.penstylesCombo.GetSelection())]))
+        # Set the pen, for the box's border
+        dc.SetPen(wx.Pen(colour=self.overlayPenColor.GetColour(),
+                         width=self.overlayPenWidth.GetValue(),
+                         style=self.wxPenStylesDict[self.penstylesCombo.GetString(self.penstylesCombo.GetSelection())]))
 
-            # Create a brush (for the box's interior) with the same colour,
-            # but 50% transparency.
-            bc = self.overlayPenColor.GetColour()
-            bc = wx.Colour(bc.red, bc.green, bc.blue, 0x80)
-            dc.SetBrush(wx.Brush(bc))
+        # Create a brush (for the box's interior) with the same colour,
+        # but 50% transparency.
+        bc = self.overlayPenColor.GetColour()
+        bc = wx.Colour(bc.red, bc.green, bc.blue, 0x80)
+        dc.SetBrush(wx.Brush(bc))
 
-            # Draw the rectangle
-            dc.DrawRectangle(rect)
+        # Draw the rectangle
+        dc.DrawRectangle(rect)
 
-            if evtPos[0] < self.startPos[0]:  # draw on left side of rect, not inside it
-                dc.DrawBitmap(self.cropbitmap,
-                              evtPos[0] - 25 - self.overlayPenWidth.GetValue(),
-                              evtPos[1] - 17)
-            else:
-                dc.DrawBitmap(self.cropbitmap,
-                              evtPos[0] + 2 + self.overlayPenWidth.GetValue(),
-                              evtPos[1] - 17)
+        if evtPos[0] < self.startPos[0]:  # draw on left side of rect, not inside it
+            dc.DrawBitmap(self.cropbitmap,
+                          evtPos[0] - 25 - self.overlayPenWidth.GetValue(),
+                          evtPos[1] - 17)
+        else:
+            dc.DrawBitmap(self.cropbitmap,
+                          evtPos[0] + 2 + self.overlayPenWidth.GetValue(),
+                          evtPos[1] - 17)
 
-            del odc  # Make sure the odc is destroyed before the dc is.
+        del odc  # Make sure the odc is destroyed before the dc is.
             ## print('OnMouseMove')
 
 
@@ -188,8 +189,7 @@ class TestPanel(wx.Panel):
 
 
 def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
-    return win
+    return TestPanel(nb, log)
 
 
 #---------------------------------------------------------------------------

@@ -37,11 +37,7 @@ class TestWindow(stc.StyledTextCtrl):
         stc.StyledTextCtrl.__init__(self, parent, -1, style=wx.NO_BORDER)
         self.SetMarginWidth(1,0)
 
-        if wx.Platform == '__WXMSW__':
-            fSize = 10
-        else:
-            fSize = 12
-
+        fSize = 10 if wx.Platform == '__WXMSW__' else 12
         self.StyleSetFont(
             stc.STC_STYLE_DEFAULT,
             wx.Font(fSize, wx.FONTFAMILY_MODERN, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)

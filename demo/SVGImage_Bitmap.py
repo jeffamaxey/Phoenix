@@ -17,7 +17,7 @@ class SVGBitmapDisplay(wx.Panel):
         wx.Panel.__init__(self, parent, *args, **kw)
         self.bmp_size = wx.Size(*bmp_size)
         self.statbmp = wx.StaticBitmap(self, bitmap=wx.Bitmap(*self.bmp_size))
-        label='{}x{}'.format(self.bmp_size.width, self.bmp_size.height)
+        label = f'{self.bmp_size.width}x{self.bmp_size.height}'
         sbox = wx.StaticBoxSizer(wx.VERTICAL, self, label)
         sbox.Add(self.statbmp)
         self.SetSizer(sbox)
@@ -101,8 +101,7 @@ class TestPanel(wx.Panel):
 #----------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
-    return win
+    return TestPanel(nb, log)
 
 #----------------------------------------------------------------------
 

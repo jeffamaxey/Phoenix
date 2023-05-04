@@ -46,18 +46,18 @@ class TestPanel(wx.Panel):
 
 def runTest(frame, nb, log):
     if havePyPdf:
-        win = TestPanel(nb, log)
-        return win
-    else:
-        from wx.lib.msgpanel import MessagePanel
-        win = MessagePanel(nb,
-                           'This demo requires either the\n'
-                           'PyMuPDF see http://pythonhosted.org/PyMuPDF\n'
-                           'or\n'
-                           'PyPDF2 see http://pythonhosted.org/PyPDF2\n'
-                           'package installed.\n',
-                           'Sorry', wx.ICON_WARNING)
-        return win
+        return TestPanel(nb, log)
+    from wx.lib.msgpanel import MessagePanel
+    return MessagePanel(
+        nb,
+        'This demo requires either the\n'
+        'PyMuPDF see http://pythonhosted.org/PyMuPDF\n'
+        'or\n'
+        'PyPDF2 see http://pythonhosted.org/PyPDF2\n'
+        'package installed.\n',
+        'Sorry',
+        wx.ICON_WARNING,
+    )
 
 overview = """\
 <html><body>

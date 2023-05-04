@@ -57,9 +57,7 @@ class demoMixin:
 
 
     def changeControlParams(self, event, parameter, checked_value, notchecked_value):
-        if event.IsChecked(): value = checked_value
-        else:               value = notchecked_value
-
+        value = checked_value if event.IsChecked() else notchecked_value
         kwargs = {parameter: value}
 
         for control in self.editList:
@@ -366,11 +364,7 @@ with auto-select:""")
                       1: masked.Field(choices=denominators, choiceRequired=True)}
         choices = []
         for n in numerators:
-            for d in denominators:
-                if n != d:
-                    choices.append( '%s/%s' % (n,d) )
-
-
+            choices.extend(f'{n}/{d}' for d in denominators if n != d)
         label_fraction = wx.StaticText( self, -1, """\
 A masked ComboBox for fraction selection.
 Choices for each side of the fraction can
@@ -544,7 +538,7 @@ with right-insert for ordinal:""")
         ctl = self.FindWindowById( event.GetId() )
         if not ctl.IsValid():
             self.log.write('current value not a valid choice')
-        self.log.write('new value = %s' % ctl.GetValue())
+        self.log.write(f'new value = {ctl.GetValue()}')
 
     def OnTextChange( self, event ):
         ctl = self.FindWindowById( event.GetId() )
@@ -552,13 +546,7 @@ with right-insert for ordinal:""")
             self.log.write('new value = %s\n' % ctl.GetValue() )
 
     def OnNumberSelect( self, event ):
-        value = event.GetString()
-        # Format choice to fit into format for #{9}.#{2}, with sign position reserved:
-        # (ordinal + fraction == 11 + decimal point + sign == 13)
-        if value:
-            floattext = "%13.2f" % float(value)
-        else:
-            floattext = value   # clear the value again
+        floattext = "%13.2f" % float(value) if (value := event.GetString()) else value
         try:
             self.floatctrl.SetValue(floattext)
         except:
@@ -622,8 +610,7 @@ class TestMaskedTextCtrls(wx.Notebook):
 #----------------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    testWin = TestMaskedTextCtrls(nb, -1, log)
-    return testWin
+    return TestMaskedTextCtrls(nb, -1, log)
 
 def RunStandalone():
     app = wx.App()

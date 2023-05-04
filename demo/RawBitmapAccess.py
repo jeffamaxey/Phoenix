@@ -46,12 +46,11 @@ class TestPanel(wx.Panel):
         if TIMEIT:
             import timeit
             timeit.s = self # Put self in timeit's global namespace as
-                            # 's' so it can be found in the code
-                            # snippets being tested.
-            if not USE_NUMPY:
-                t = timeit.Timer("bmp = s.MakeBitmap(10, 20, 30)")
-            else:
-                t = timeit.Timer("bmp = s.MakeBitmap2(10, 20, 30)")
+            t = (
+                timeit.Timer("bmp = s.MakeBitmap2(10, 20, 30)")
+                if USE_NUMPY
+                else timeit.Timer("bmp = s.MakeBitmap(10, 20, 30)")
+            )
             log.write("Timing...\n")
             num = 100
             tm = t.timeit(num)
@@ -152,17 +151,14 @@ class TestPanel(wx.Panel):
         arr[0:DIM, 0,     A] = wx.ALPHA_OPAQUE  # first col
         arr[0:DIM, DIM-1, A] = wx.ALPHA_OPAQUE  # last col
 
-        # finally, use the array to create a bitmap
-        bmp = wx.BitmapFromBufferRGBA(DIM, DIM, arr)
-        return bmp
+        return wx.BitmapFromBufferRGBA(DIM, DIM, arr)
 
 
 
 #----------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
-    return win
+    return TestPanel(nb, log)
 
 #----------------------------------------------------------------------
 

@@ -20,8 +20,7 @@ class TestColourChooser(wx.Panel):
 #---------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    win = TestColourChooser(nb, log)
-    return win
+    return TestColourChooser(nb, log)
 
 #---------------------------------------------------------------
 

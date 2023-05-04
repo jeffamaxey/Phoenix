@@ -82,10 +82,7 @@ class PenStyleComboBox(wx.adv.OwnerDrawnComboBox):
     # needed to display an item in the popup, or -1 for default
     def OnMeasureItem(self, item):
         # Simply demonstrate the ability to have variable-height items
-        if item & 1:
-            return 36
-        else:
-            return 24
+        return 36 if item & 1 else 24
 
     # Overridden from OwnerDrawnComboBox.  Callback for item width, or
     # -1 for default/undetermined
@@ -126,8 +123,7 @@ class TestPanel(wx.Panel):
 #----------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
-    return win
+    return TestPanel(nb, log)
 
 #----------------------------------------------------------------------
 

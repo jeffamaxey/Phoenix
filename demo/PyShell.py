@@ -4,11 +4,10 @@ import wx.py as py
 
 #----------------------------------------------------------------------
 
-intro = 'Welcome To PyCrust %s - The Flakiest Python Shell' % py.version.VERSION
+intro = f'Welcome To PyCrust {py.version.VERSION} - The Flakiest Python Shell'
 
 def runTest(frame, nb, log):
-    win = py.shell.Shell(nb, -1, introText=intro)
-    return win
+    return py.shell.Shell(nb, -1, introText=intro)
 
 #----------------------------------------------------------------------
 

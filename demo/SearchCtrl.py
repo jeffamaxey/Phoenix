@@ -74,7 +74,7 @@ class TestPanel(wx.Panel):
         self.log.write("OnCancel")
 
     def OnDoSearch(self, evt):
-        self.log.write("OnDoSearch: " + self.search.GetValue())
+        self.log.write(f"OnDoSearch: {self.search.GetValue()}")
 
 
     def MakeMenu(self):
@@ -93,8 +93,7 @@ class TestPanel(wx.Panel):
 #----------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
-    return win
+    return TestPanel(nb, log)
 
 #----------------------------------------------------------------------
 

@@ -36,8 +36,11 @@ class TestPanel(wx.Panel):
         # a set of items in the sizer for each.
         def makeitem(name, *args):
             func = getattr(sp, name)
-            sizer.Add(wx.StaticText(self, -1, "%s%s:" %(name, repr(args))),
-                      0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+            sizer.Add(
+                wx.StaticText(self, -1, f"{name}{repr(args)}:"),
+                0,
+                wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL,
+            )
             sizer.Add(wx.TextCtrl(self, -1, func(*args),
                                   size=(275,-1), style=wx.TE_READONLY),
                       0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
@@ -75,10 +78,7 @@ class TestPanel(wx.Panel):
     def OnShowDoc(self, evt):
         doc = self.help[evt.GetEventObject()]
 
-        # trim the whitespace from each line
-        lines = []
-        for line in doc.split('\n'):
-            lines.append(line.strip())
+        lines = [line.strip() for line in doc.split('\n')]
         doc = '\n'.join(lines)
         wx.TipWindow(self, doc, 500)
 
@@ -86,8 +86,7 @@ class TestPanel(wx.Panel):
 #----------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
-    return win
+    return TestPanel(nb, log)
 
 #----------------------------------------------------------------------
 

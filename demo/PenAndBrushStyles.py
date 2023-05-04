@@ -23,10 +23,13 @@ pen_styles = [#"wx.PENSTYLE_INVALID",
               ]
 
 if 'wxMSW' in wx.PlatformInfo:
-    pen_styles.append("wx.PENSTYLE_STIPPLE_MASK_OPAQUE")
-    pen_styles.append("wx.PENSTYLE_STIPPLE_MASK")
-    pen_styles.append("wx.PENSTYLE_STIPPLE")
-
+    pen_styles.extend(
+        (
+            "wx.PENSTYLE_STIPPLE_MASK_OPAQUE",
+            "wx.PENSTYLE_STIPPLE_MASK",
+            "wx.PENSTYLE_STIPPLE",
+        )
+    )
 brush_styles = [#"wx.BRUSHSTYLE_INVALID",
                 "wx.BRUSHSTYLE_SOLID",
                 "wx.BRUSHSTYLE_TRANSPARENT",
@@ -85,9 +88,7 @@ class PenPanel(BasePanel):
             pen = wx.Pen(wx.BLUE, penWidth, eval(name))
             pen.SetStipple(bmp)
         else:
-            penWidth = 3
-            if 'HATCH' in name:
-                penWidth = 8
+            penWidth = 8 if 'HATCH' in name else 3
             pen = wx.Pen(wx.BLUE, penWidth, eval(name))
 
         if "USER" in name:
@@ -181,8 +182,7 @@ class TestPanel(wx.Panel):
 #----------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    win = TestPanel(nb)
-    return win
+    return TestPanel(nb)
 
 #----------------------------------------------------------------------
 

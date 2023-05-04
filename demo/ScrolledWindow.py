@@ -156,8 +156,7 @@ class MyCanvas(wx.ScrolledWindow):
         self.x, self.y = self.ConvertEventCoords(event)
 
     def ConvertEventCoords(self, event):
-        newpos = self.CalcUnscrolledPosition(event.GetX(), event.GetY())
-        return newpos
+        return self.CalcUnscrolledPosition(event.GetX(), event.GetY())
 
     def OnLeftButtonEvent(self, event):
         if self.IsAutoScrolling():
@@ -235,8 +234,7 @@ class MyCanvas(wx.ScrolledWindow):
 #---------------------------------------------------------------------------
 
 def runTest(frame, nb, log):
-    win = MyCanvas(nb)
-    return win
+    return MyCanvas(nb)
 
 #---------------------------------------------------------------------------
 

@@ -87,9 +87,7 @@ class MegaTable(Grid.GridTableBase):
 
         Otherwise default to the default renderer.
         """
-        col = 0
-
-        for colname in self.colnames:
+        for col, colname in enumerate(self.colnames):
             attr = Grid.GridCellAttr()
             if colname in self.plugins:
                 renderer = self.plugins[colname](self)
@@ -104,17 +102,11 @@ class MegaTable(Grid.GridTableBase):
                 attr.SetRenderer(renderer)
 
             grid.SetColAttr(col, attr)
-            col += 1
 
     # ------------------------------------------------------
     # begin the added code to manipulate the table (non wx related)
     def AppendRow(self, row):
-        #print('append')
-        entry = {}
-
-        for name in self.colnames:
-            entry[name] = "Appended_%i"%row
-
+        entry = {name: "Appended_%i"%row for name in self.colnames}
         # XXX Hack
         # entry["A"] can only be between 1..4
         entry["A"] = random.choice(range(4))
@@ -125,19 +117,11 @@ class MegaTable(Grid.GridTableBase):
         cols -> delete the columns from the dataset
         cols hold the column indices
         """
-        # we'll cheat here and just remove the name from the
-        # list of column names.  The data will remain but
-        # it won't be shown
-        deleteCount = 0
         cols = cols[:]
         cols.sort()
 
-        for i in cols:
+        for deleteCount, i in enumerate(cols):
             self.colnames.pop(i-deleteCount)
-            # we need to advance the delete count
-            # to make sure we delete the right columns
-            deleteCount += 1
-
         if not len(self.colnames):
             self.data = []
 
@@ -146,15 +130,11 @@ class MegaTable(Grid.GridTableBase):
         rows -> delete the rows from the dataset
         rows hold the row indices
         """
-        deleteCount = 0
         rows = rows[:]
         rows.sort()
 
-        for i in rows:
+        for deleteCount, i in enumerate(rows):
             self.data.pop(i-deleteCount)
-            # we need to advance the delete count
-            # to make sure we delete the right rows
-            deleteCount += 1
 
     def SortColumn(self, col):
         """
@@ -168,10 +148,7 @@ class MegaTable(Grid.GridTableBase):
             _data.append((entry.get(name, None), row))
 
         _data.sort()
-        self.data = []
-
-        for sortvalue, row in _data:
-            self.data.append(row)
+        self.data = [row for sortvalue, row in _data]
 
     # end table manipulation code
     # ----------------------------------------------------------
@@ -218,12 +195,8 @@ class MegaImageRenderer(Grid.GridCellRenderer):
         # copy the image but only to the size of the grid cell
         width, height = bmp.GetWidth(), bmp.GetHeight()
 
-        if width > rect.width-2:
-            width = rect.width-2
-
-        if height > rect.height-2:
-            height = rect.height-2
-
+        width = min(width, rect.width-2)
+        height = min(height, rect.height-2)
         dc.Blit(rect.x+1, rect.y+1, width, height,
                 image,
                 0, 0, wx.COPY, True)
@@ -398,10 +371,7 @@ colnames = ["Row", "This", "Is", "A", "Test"]
 data = []
 
 for row in range(1000):
-    d = {}
-    for name in ["This", "Test", "Is"]:
-        d[name] = random.random()
-
+    d = {name: random.random() for name in ["This", "Test", "Is"]}
     d["Row"] = len(data)
     # XXX
     # the "A" column can only be between one and 4
@@ -456,8 +426,7 @@ class TestPanel(wx.Panel):
 
 
 def runTest(frame, nb, log):
-    win = TestPanel(nb, log)
-    return win
+    return TestPanel(nb, log)
 
 
 
